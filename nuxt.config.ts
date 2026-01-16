@@ -1,30 +1,33 @@
-// nuxt.config.ts
 export default defineNuxtConfig({
-  // Enable Nuxt 4 directory structure (app/ folder)
   future: {
     compatibilityVersion: 4,
   },
 
   compatibilityDate: '2026-01-13',
 
-  // Enable Nuxt UI
   modules: ['@nuxt/ui'],
 
-  // Configuration for your API Keys
   runtimeConfig: {
-    // Private keys (Server-side only) - Keeps your API Key safe!
-    apiKey: '',
-    apiUrl: '',
+    awsAccessKeyId: process.env.AWS_LASKARBUAH_HRD_ACCESS_KEY_ID,
+    awsSecretAccessKey: process.env.AWS_LASKARBUAH_HRD_SECRET_ACCESS_KEY,
+    awsRegion: process.env.AWS_LASKARBUAH_HRD_REGION,
+    awsBucket: process.env.AWS_LASKARBUAH_HRD_BUCKET,
 
-    // Public keys (Exposed to browser)
     public: {
-      // Put things here only if the browser NEEDS to see them
-      siteName: 'Employee Dashboard'
+      siteName: 'Freelance Laskarbuah',
+      appId: process.env.NUXT_PUBLIC_APP_ID || '16', 
+      
+      apiBase: process.env.NUXT_PUBLIC_API_BASE,
+      headerKey: process.env.NUXT_PUBLIC_HEADER_KEY, 
+      apiKey: process.env.NUXT_PUBLIC_API_KEY
     }
   },
 
-  // Color mode (Light/Dark)
   colorMode: {
-    preference: 'system' // or 'light' or 'dark'
+    preference: 'system' 
+  },
+  
+  imports: {
+    dirs: ['composables']
   }
 })
