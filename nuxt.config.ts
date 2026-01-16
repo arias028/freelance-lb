@@ -15,19 +15,17 @@ export default defineNuxtConfig({
 
     public: {
       siteName: 'Freelance Laskarbuah',
-      appId: process.env.NUXT_PUBLIC_APP_ID || '16', 
-      
+      appId: process.env.NUXT_PUBLIC_APP_ID || '16',
+
       apiBase: process.env.NUXT_PUBLIC_API_BASE,
-      headerKey: process.env.NUXT_PUBLIC_HEADER_KEY, 
+      headerKey: process.env.NUXT_PUBLIC_HEADER_KEY,
       apiKey: process.env.NUXT_PUBLIC_API_KEY
     }
   },
 
   colorMode: {
-    preference: 'system' 
+    preference: 'system'
   },
-  
-  imports: {
-    dirs: ['composables']
-  }
+
+
 })

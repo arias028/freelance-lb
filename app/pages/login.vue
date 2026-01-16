@@ -1,5 +1,7 @@
 <script setup lang="ts">
-definePageLayout('auth')
+definePageMeta({
+    layout: 'auth'
+})
 
 const { login } = useAuth()
 const toast = useToast()
@@ -13,16 +15,16 @@ const isLoading = ref(false)
 
 async function handleLogin() {
     if (!form.kode_user || !form.password) {
-        toast.add({ title: 'Error', description: 'Harap isi semua kolom', color: 'red' })
+        toast.add({ title: 'Error', description: 'Harap isi semua kolom', color: 'error' })
         return
     }
 
     isLoading.value = true
     try {
         await login(form.kode_user, form.password)
-        toast.add({ title: 'Success', description: 'Login berhasil!', color: 'green' })
+        toast.add({ title: 'Success', description: 'Login berhasil!', color: 'success' })
     } catch (error: any) {
-        toast.add({ title: 'Gagal', description: error.message, color: 'red' })
+        toast.add({ title: 'Gagal', description: error.message, color: 'error' })
     } finally {
         isLoading.value = false
     }
@@ -36,9 +38,6 @@ async function handleLogin() {
                 <h1 class="text-xl font-bold text-gray-900 dark:text-white text-center">
                     Freelance Login
                 </h1>
-                <p class="text-sm text-gray-500 text-center mt-1">
-                    App ID: 16 (Laskar Buah)
-                </p>
             </template>
 
             <form @submit.prevent="handleLogin" class="space-y-4">
