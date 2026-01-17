@@ -1,3 +1,4 @@
+// nuxt.config.ts
 export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
@@ -7,8 +8,8 @@ export default defineNuxtConfig({
 
   modules: ['@nuxt/ui'],
 
-  css: ['~/assets/css/main.css'],
 
+  css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
     awsAccessKeyId: process.env.AWS_LASKARBUAH_HRD_ACCESS_KEY_ID,
@@ -19,7 +20,6 @@ export default defineNuxtConfig({
     public: {
       siteName: 'Freelance Laskarbuah',
       appId: process.env.NUXT_PUBLIC_APP_ID || '16',
-
       apiBase: process.env.NUXT_PUBLIC_API_BASE,
       headerKey: process.env.NUXT_PUBLIC_HEADER_KEY,
       apiKey: process.env.NUXT_PUBLIC_API_KEY
@@ -28,7 +28,5 @@ export default defineNuxtConfig({
 
   colorMode: {
     preference: 'system'
-  },
-
-
+  }
 })

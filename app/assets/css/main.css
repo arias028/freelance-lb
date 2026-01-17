@@ -1,7 +1,12 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+@theme {
+    --font-sans: 'Inter', system-ui, sans-serif;
+    /* Opsional: Menggunakan font modern */
+}
+
+/* HAPUS rule body yang lama. Ganti dengan ini: */
 body {
-    @apply bg-gray-50 text-gray-900;
+    @apply antialiased font-sans;
+    /* Jangan taruh warna text atau bg disini agar tidak bentrok dengan Dark Mode Nuxt UI */
 }
