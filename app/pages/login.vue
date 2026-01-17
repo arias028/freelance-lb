@@ -7,7 +7,7 @@ definePageMeta({
 })
 
 const { login } = useAuth()
-const toast = useToast()
+const toast = useCustomToast()
 
 const form = reactive({
     kode_user: '',
@@ -82,15 +82,15 @@ onMounted(() => {
 })
 
 async function handleLogin() {
-    // Basic Form Validation
+    // Validasi form dasar
     if (!form.kode_user || !form.password) {
-        toast.add({ title: 'Perhatian', description: 'Mohon lengkapi form login.', color: 'warning', icon: 'i-heroicons-exclamation-triangle' })
+        toast.add({ title: 'Perhatian', description: 'Mohon lengkapi form login.', color: 'warning' })
         return
     }
 
-    // Captcha Validation
+    // Validasi Captcha
     if (captchaInput.value.toUpperCase() !== captchaCode.value) {
-        toast.add({ title: 'Captcha Salah', description: 'Kode keamanan tidak sesuai. Silakan coba lagi.', color: 'error', icon: 'i-heroicons-x-circle' })
+        toast.add({ title: 'Captcha Salah', description: 'Kode keamanan tidak sesuai. Silakan coba lagi.', color: 'error' })
         captchaInput.value = ''
         generateCaptcha()
         return
@@ -99,10 +99,10 @@ async function handleLogin() {
     isLoading.value = true
     try {
         await login(form.kode_user, form.password)
-        toast.add({ title: 'Berhasil', description: 'Selamat datang kembali!', color: 'success', icon: 'i-heroicons-check-circle' })
+        toast.add({ title: 'Berhasil', description: 'Selamat datang kembali!', color: 'success' })
     } catch (error: any) {
-        toast.add({ title: 'Akses Ditolak', description: error.message || 'Cek kembali kode user dan password.', color: 'error', icon: 'i-heroicons-x-circle' })
-        // Optional: Refresh captcha on failed login too
+        toast.add({ title: 'Akses Ditolak', description: error.message || 'Cek kembali kode user dan password.', color: 'error' })
+        // Refresh captcha saat gagal login
         generateCaptcha()
         captchaInput.value = ''
     } finally {

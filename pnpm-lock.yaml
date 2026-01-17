@@ -26,6 +26,9 @@ importers:
       vue-router:
         specifier: ^4.6.4
         version: 4.6.4(vue@3.5.26(typescript@5.9.3))
+      z-index:
+        specifier: ^0.0.1
+        version: 0.0.1
     devDependencies:
       '@nuxt/ui':
         specifier: ^4.3.0
@@ -4638,6 +4641,9 @@ packages:
 
   youch@4.1.0-beta.13:
     resolution: {integrity: sha512-3+AG1Xvt+R7M7PSDudhbfbwiyveW6B8PLBIwTyEC598biEYIjHhC89i6DBEvR0EZUjGY3uGSnC429HpIa2Z09g==}
+
+  z-index@0.0.1:
+    resolution: {integrity: sha512-KnMzuWl7XQMvXjfAfLX/Prs31GgccuIAa8VYwljjVPJhHu7iSSJXDKYL3kRL/VNahNFa33uY1GdYJTKyU8WMhg==}
 
   zip-stream@6.0.1:
     resolution: {integrity: sha512-zK7YHHz4ZXpW89AHXUPbQVGKI7uvkd3hzusTdotCg1UxyaVtg0zFJSTfW/Dq5f7OBBVnq6cZIaC8Ti4hb6dtCA==}
@@ -10056,6 +10062,8 @@ snapshots:
       '@speed-highlight/core': 1.2.14
       cookie-es: 2.0.0
       youch-core: 0.3.3
+
+  z-index@0.0.1: {}
 
   zip-stream@6.0.1:
     dependencies:
