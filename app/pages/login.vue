@@ -117,54 +117,70 @@ async function handleLogin() {
 </script>
 
 <template>
+    <!-- 
+        CORPORATE NATURE COLOR PALETTE - High Readability for 40+ Users
+        ================================================================
+        Background Page: #F1F5F9 (Soft Cloud) - Set this on parent/layout
+        Card: #FFFFFF (Pure White) with subtle shadow
+        Primary Button: #0F172A (Midnight Navy) | Text: #FFFFFF
+        Input Border Default: #CBD5E1 (Light Grey)
+        Input Focus Border: #166534 (Forest Green)
+        Input Text: #334155 (Slate Grey)
+        Headings/Labels: #0F172A (Midnight Navy)
+    -->
     <div
-        class="w-full bg-white rounded-2xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.07)] border border-slate-100 overflow-hidden">
+        class="login-card w-full bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-[#E2E8F0] overflow-hidden">
 
         <!-- Header Section -->
-        <div class="px-8 pt-10 pb-6 text-center bg-gradient-to-b from-slate-50/50 to-transparent">
+        <div class="px-8 pt-10 pb-8 text-center">
             <div
-                class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white mb-6 shadow-lg shadow-slate-200/50 transform rotate-3 hover:rotate-6 transition-transform duration-300 overflow-hidden border border-slate-100">
+                class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white mb-6 shadow-lg shadow-slate-200/50 transform rotate-3 hover:rotate-6 transition-transform duration-300 overflow-hidden border border-[#E2E8F0]">
                 <NuxtImg src="https://bina57.s3.ap-southeast-3.amazonaws.com/logo/konstruksi.png" alt="Logo Konstruksi"
-                    class="w-16 h-16 object-contain -rotate-3" loading="lazy" />
+                    class="w-20 h-20 object-contain -rotate-3" loading="lazy" />
             </div>
 
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+            <!-- Heading: Midnight Navy #0F172A -->
+            <h1 class="text-2xl md:text-3xl font-bold text-[#0F172A] tracking-tight">
                 Freelance Portal
             </h1>
-            <p class="mt-2 text-sm text-slate-500 font-medium">
+            <p class="mt-3 text-base text-[#64748B] font-medium">
                 Masuk untuk mengakses dashboard Anda
             </p>
         </div>
 
         <!-- Form Section -->
         <div class="px-8 pb-10">
-            <form @submit.prevent="handleLogin" class="space-y-5">
+            <form @submit.prevent="handleLogin" class="space-y-6">
 
-                <div class="space-y-1.5">
-                    <label class="text-sm font-semibold text-slate-700 ml-1">Kode User</label>
+                <!-- Kode User Field -->
+                <div class="space-y-2">
+                    <!-- Label: Midnight Navy #0F172A, 16px font -->
+                    <label class="block text-base font-semibold text-[#0F172A] ml-1">Kode User</label>
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <User
-                                class="h-5 w-5 text-slate-400 group-focus-within:text-primary-500 transition-colors duration-200" />
+                                class="h-5 w-5 text-[#94A3B8] group-focus-within:text-[#166534] transition-colors duration-200" />
                         </div>
+                        <!-- Input: min-height 48px, 16px text, border #CBD5E1, focus border #166534 -->
                         <input v-model="form.kode_user" type="text"
-                            class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all duration-200"
+                            class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-all duration-200"
                             placeholder="Contoh: FRL0001" autofocus />
                     </div>
                 </div>
 
-                <div class="space-y-1.5">
-                    <label class="text-sm font-semibold text-slate-700 ml-1">Password</label>
+                <!-- Password Field -->
+                <div class="space-y-2">
+                    <label class="block text-base font-semibold text-[#0F172A] ml-1">Password</label>
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <Lock
-                                class="h-5 w-5 text-slate-400 group-focus-within:text-primary-500 transition-colors duration-200" />
+                                class="h-5 w-5 text-[#94A3B8] group-focus-within:text-[#166534] transition-colors duration-200" />
                         </div>
                         <input v-model="form.password" :type="showPassword ? 'text' : 'password'"
-                            class="block w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all duration-200"
+                            class="login-input block w-full min-h-[48px] pl-12 pr-12 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-all duration-200"
                             placeholder="••••••••" />
                         <button type="button" @click="showPassword = !showPassword"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors duration-200">
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-[#64748B] hover:text-[#0F172A] focus:outline-none transition-colors duration-200">
                             <Eye v-if="!showPassword" class="h-5 w-5" />
                             <EyeOff v-else class="h-5 w-5" />
                         </button>
@@ -172,34 +188,35 @@ async function handleLogin() {
                 </div>
 
                 <!-- Captcha Section -->
-                <div class="space-y-1.5">
-                    <label class="text-sm font-semibold text-slate-700 ml-1">Kode Keamanan</label>
-                    <div class="flex items-center gap-3">
+                <div class="space-y-2">
+                    <label class="block text-base font-semibold text-[#0F172A] ml-1">Kode Keamanan</label>
+                    <div class="flex items-center gap-4">
                         <div class="relative group flex-1">
-                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <ShieldCheck
-                                    class="h-5 w-5 text-slate-400 group-focus-within:text-primary-500 transition-colors duration-200" />
+                                    class="h-5 w-5 text-[#94A3B8] group-focus-within:text-[#166534] transition-colors duration-200" />
                             </div>
                             <input v-model="captchaInput" type="text" maxlength="3"
-                                class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all duration-200 uppercase tracking-widest font-bold"
-                                placeholder="Kode..." />
+                                class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-all duration-200 uppercase tracking-widest font-bold"
+                                placeholder="ABC" />
                         </div>
 
                         <div class="relative cursor-pointer group flex-shrink-0" @click="generateCaptcha"
                             title="Klik untuk ganti kode">
-                            <canvas ref="captchaCanvas" width="100" height="48"
-                                class="rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:border-primary-400 transition-colors block"></canvas>
+                            <canvas ref="captchaCanvas" width="110" height="52"
+                                class="rounded-xl border-2 border-[#CBD5E1] bg-[#F8FAFC] cursor-pointer hover:border-[#166534] transition-colors block"></canvas>
                             <div
-                                class="absolute -right-2 -top-2 bg-white rounded-full p-1.5 shadow-sm border border-slate-200 opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110">
-                                <RefreshCw class="w-3.5 h-3.5 text-primary-600" />
+                                class="absolute -right-2 -top-2 bg-white rounded-full p-1.5 shadow-sm border border-[#CBD5E1] opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110">
+                                <RefreshCw class="w-4 h-4 text-[#166534]" />
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Login Button: min-height 50px, Midnight Navy #0F172A bg, white text -->
                 <div class="pt-4">
                     <button type="submit" :disabled="isLoading"
-                        class="w-full flex items-center justify-center space-x-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 shadow-lg shadow-slate-900/20 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]">
+                        class="login-btn w-full flex items-center justify-center gap-3 min-h-[50px] py-3.5 px-6 border-0 rounded-xl text-base font-bold text-white bg-[#0F172A] hover:bg-[#1E293B] focus:outline-none focus:ring-4 focus:ring-[#0F172A]/30 shadow-lg shadow-[#0F172A]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]">
                         <Loader2 v-if="isLoading" class="animate-spin h-5 w-5" />
                         <span v-else>Masuk Dashboard</span>
                         <ArrowRight v-if="!isLoading" class="h-5 w-5" />
@@ -209,38 +226,38 @@ async function handleLogin() {
             </form>
 
             <!-- Link to Change Password -->
-            <div class="mt-6 text-center">
+            <div class="mt-8 text-center">
                 <NuxtLink to="/changepw"
-                    class="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline transition-colors duration-200">
+                    class="text-base font-medium text-[#166534] hover:text-[#14532D] hover:underline underline-offset-4 transition-colors duration-200">
                     Lupa Password? Ganti password di sini
                 </NuxtLink>
             </div>
 
             <!-- PWA Install Button -->
-            <div v-if="isInstallable && !isInstalled" class="mt-4 text-center">
+            <div v-if="isInstallable && !isInstalled" class="mt-6 text-center">
                 <button @click="installApp"
-                    class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl shadow-md shadow-emerald-500/20 transition-all duration-200 active:scale-[0.98]">
-                    <Download class="w-4 h-4" />
+                    class="inline-flex items-center gap-2 min-h-[44px] px-5 py-3 text-base font-semibold text-white bg-gradient-to-r from-[#166534] to-[#15803D] hover:from-[#14532D] hover:to-[#166534] rounded-xl shadow-md shadow-[#166534]/20 transition-all duration-200 active:scale-[0.98]">
+                    <Download class="w-5 h-5" />
                     <span>Install Aplikasi</span>
                 </button>
-                <p class="mt-2 text-xs text-slate-400">
+                <p class="mt-3 text-sm text-[#64748B]">
                     Akses lebih cepat tanpa membuka browser
                 </p>
             </div>
 
             <!-- Already Installed Badge -->
-            <div v-else-if="isInstalled" class="mt-4 text-center">
+            <div v-else-if="isInstalled" class="mt-6 text-center">
                 <div
-                    class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-full border border-emerald-200">
-                    <ShieldCheck class="w-3.5 h-3.5" />
+                    class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#166534] bg-[#DCFCE7] rounded-full border border-[#BBF7D0]">
+                    <ShieldCheck class="w-4 h-4" />
                     <span>Aplikasi sudah terinstall</span>
                 </div>
             </div>
 
-            <div class="mt-8 pt-6 border-t border-slate-100/80">
+            <div class="mt-10 pt-6 border-t border-[#E2E8F0]">
                 <div
-                    class="flex items-center justify-center space-x-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                    <ShieldCheck class="w-3.5 h-3.5 text-emerald-500" />
+                    class="flex items-center justify-center gap-2 text-sm font-medium text-[#64748B] uppercase tracking-wider">
+                    <ShieldCheck class="w-4 h-4 text-[#166534]" />
                     <span>Sistem Terenkripsi & Aman</span>
                 </div>
             </div>

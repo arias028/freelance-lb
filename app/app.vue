@@ -103,51 +103,40 @@ const iconClasses = {
       <NuxtPage />
     </NuxtLayout>
 
-    <!-- Hydration Loading Overlay - Professional design with interaction blocking -->
     <Teleport to="body">
-      <Transition name="loading-fade">
-        <div v-if="isHydrating" class="loading-overlay" @click.stop.prevent @touchstart.stop.prevent
-          @touchmove.stop.prevent @wheel.stop.prevent @keydown.stop.prevent>
+      <Transition enter-active-class="transition-opacity duration-200 ease-out"
+        leave-active-class="transition-opacity duration-300 ease-in" enter-from-class="opacity-0"
+        leave-to-class="opacity-0">
+        <div v-if="isHydrating"
+          class="fixed inset-0 w-screen h-screen z-[999999] flex items-center justify-center bg-[#F1F5F9] select-none touch-none"
+          @click.stop.prevent @touchstart.stop.prevent @touchmove.stop.prevent @wheel.stop.prevent
+          @keydown.stop.prevent>
 
-          <div class="loading-content">
-            <!-- Logo atau Brand (opsional) -->
-            <div class="loading-logo">
-              <NuxtImg src="https://bina57.s3.ap-southeast-3.amazonaws.com/logo/konstruksi.png" alt="Logo"
-                class="w-16 h-16 object-contain" loading="eager" />
-            </div>
-
-            <!-- Spinner Animation -->
-            <div class="loading-spinner-container">
-              <!-- Outer ring - pulse effect -->
-              <div class="loading-ring-outer"></div>
-              <!-- Middle ring - rotating -->
-              <div class="loading-ring-middle"></div>
-              <!-- Inner dot - pulse -->
-              <div class="loading-dot-inner"></div>
-            </div>
-
-            <!-- Loading Text -->
-            <div class="loading-text-container">
-              <p class="loading-text">Memuat<span class="loading-dots"></span></p>
-              <p class="loading-subtext">Mohon tunggu sebentar</p>
-            </div>
+          <div class="flex flex-col items-center gap-6">
+            <svg class="animate-spin w-[50px] h-[50px] text-[#166534]" xmlns="http://www.w3.org/2000/svg" fill="none"
+              viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
           </div>
 
         </div>
       </Transition>
     </Teleport>
 
-    <!-- Custom Toast Container -->
     <Teleport to="body">
       <div class="fixed top-4 right-4 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
-        <TransitionGroup name="toast">
+        <TransitionGroup enter-active-class="transition-all duration-300 ease-out"
+          leave-active-class="transition-all duration-300 ease-in" enter-from-class="opacity-0 translate-x-full"
+          leave-to-class="opacity-0 translate-x-full" move-class="transition-transform duration-300 ease-out">
           <div v-for="toast in toasts" :key="toast.id" :class="[
             'pointer-events-auto rounded-xl border-l-4 p-4 shadow-lg backdrop-blur-sm transition-all duration-300',
             colorClasses[toast.color],
             toast.visible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
           ]">
             <div class="flex items-start gap-3">
-              <!-- Icon -->
               <div :class="['flex-shrink-0 mt-0.5', iconClasses[toast.color]]">
                 <svg v-if="toast.color === 'success'" class="w-5 h-5" fill="none" stroke="currentColor"
                   viewBox="0 0 24 24">
@@ -170,13 +159,11 @@ const iconClasses = {
                 </svg>
               </div>
 
-              <!-- Content -->
               <div class="flex-1 min-w-0">
                 <h4 class="text-sm font-semibold">{{ toast.title }}</h4>
                 <p class="text-sm mt-0.5 opacity-90">{{ toast.description }}</p>
               </div>
 
-              <!-- Close Button -->
               <button @click="removeToast(toast.id)"
                 class="flex-shrink-0 rounded-lg p-1 hover:bg-black/5 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,227 +177,3 @@ const iconClasses = {
     </Teleport>
   </UApp>
 </template>
-
-<style>
-/* ===== LOADING OVERLAY STYLES ===== */
-
-/* Main overlay - full viewport coverage with high z-index */
-.loading-overlay {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 999999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #0F172A;
-  /* Midnight Navy */
-  /* Prevent any interaction pass-through */
-  pointer-events: all;
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
-}
-
-/* Content container */
-.loading-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2rem;
-}
-
-/* Logo styling */
-.loading-logo {
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-  animation: logo-float 3s ease-in-out infinite;
-}
-
-@keyframes logo-float {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-/* Spinner container */
-.loading-spinner-container {
-  position: relative;
-  width: 80px;
-  height: 80px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Outer ring - pulse effect */
-.loading-ring-outer {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  border: 3px solid rgba(22, 101, 52, 0.2);
-  /* Forest Green with low opacity */
-  animation: pulse-ring 2s ease-out infinite;
-}
-
-@keyframes pulse-ring {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-
-  100% {
-    transform: scale(1.4);
-    opacity: 0;
-  }
-}
-
-/* Middle ring - rotating spinner */
-.loading-ring-middle {
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  border: 4px solid transparent;
-  border-top-color: #166534;
-  /* Forest Green */
-  border-right-color: #166534;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-/* Inner dot - pulsing */
-.loading-dot-inner {
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #166534;
-  /* Forest Green */
-  box-shadow: 0 0 20px rgba(22, 101, 52, 0.6);
-  animation: dot-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes dot-pulse {
-
-  0%,
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 20px rgba(22, 101, 52, 0.6);
-  }
-
-  50% {
-    transform: scale(1.2);
-    box-shadow: 0 0 30px rgba(22, 101, 52, 0.8);
-  }
-}
-
-/* Text container */
-.loading-text-container {
-  text-align: center;
-}
-
-/* Main loading text */
-.loading-text {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #F1F5F9;
-  /* Light text on dark bg */
-  letter-spacing: 0.05em;
-  margin: 0;
-}
-
-/* Animated dots after "Memuat" */
-.loading-dots::after {
-  content: '';
-  animation: loading-dots 1.5s steps(4, end) infinite;
-}
-
-@keyframes loading-dots {
-  0% {
-    content: '';
-  }
-
-  25% {
-    content: '.';
-  }
-
-  50% {
-    content: '..';
-  }
-
-  75% {
-    content: '...';
-  }
-
-  100% {
-    content: '';
-  }
-}
-
-/* Subtext */
-.loading-subtext {
-  font-size: 0.875rem;
-  color: rgba(241, 245, 249, 0.6);
-  /* Subdued light text */
-  margin: 0.5rem 0 0 0;
-  font-weight: 400;
-}
-
-/* ===== LOADING FADE TRANSITION ===== */
-.loading-fade-enter-active {
-  transition: opacity 0.3s ease-out;
-}
-
-.loading-fade-leave-active {
-  transition: opacity 0.5s ease-in;
-}
-
-.loading-fade-enter-from,
-.loading-fade-leave-to {
-  opacity: 0;
-}
-
-/* ===== TOAST TRANSITION ANIMATIONS ===== */
-.toast-enter-active {
-  transition: all 0.3s ease-out;
-}
-
-.toast-leave-active {
-  transition: all 0.3s ease-in;
-}
-
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(100%);
-}
-
-.toast-leave-to {
-  opacity: 0;
-  transform: translateX(100%);
-}
-
-.toast-move {
-  transition: transform 0.3s ease;
-}
-</style>
