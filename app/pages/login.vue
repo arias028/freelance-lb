@@ -135,8 +135,7 @@ async function handleLogin() {
         <div class="px-8 pt-10 pb-8 text-center">
             <div
                 class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white mb-6 shadow-lg shadow-slate-200/50 transform transition-transform duration-300 overflow-hidden border border-[#E2E8F0]">
-                <NuxtImg src="https://bina57.s3.ap-southeast-3.amazonaws.com/logo/freelance.png" alt="Logo Konstruksi"
-                    class="w-20 h-20" loading="lazy" />
+                <NuxtImg src="pwa-192x192.png" alt="Logo Konstruksi" class="w-20 h-20" loading="lazy" />
             </div>
 
             <!-- Heading: Midnight Navy #0F172A -->

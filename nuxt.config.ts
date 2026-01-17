@@ -78,32 +78,34 @@ export default defineNuxtConfig({
   pwa: {
     registerType: 'autoUpdate',
     manifest: {
-      name: 'Freelance Portal',
+      name: 'Freelance LB',
       short_name: 'Freelance',
       description: 'Portal Freelance PT. BINA',
-      theme_color: '#1e40af',
-      background_color: '#ffffff',
+      theme_color: '#0F172A',
+      background_color: '#F1F5F9',
       display: 'standalone',
       orientation: 'portrait',
       icons: [
         {
-          src: 'https://bina57.s3.ap-southeast-3.amazonaws.com/logo/freelance.png',
+          src: 'pwa-192x192.png',
           sizes: '192x192',
           type: 'image/png'
         },
         {
-          src: 'https://bina57.s3.ap-southeast-3.amazonaws.com/logo/freelance.png',
+          src: 'pwa-192x192.png',
           sizes: '512x512',
-          type: 'image/png'
+          type: 'image/png',
+          purpose: 'any maskable'
         }
       ]
     },
     workbox: {
       navigateFallback: '/',
-      // globPatterns dikonfigurasi otomatis saat production build
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
     },
     client: {
-      installPrompt: true
+      installPrompt: true,
+      periodicSyncForUpdates: 3600
     },
     devOptions: {
       enabled: true,
