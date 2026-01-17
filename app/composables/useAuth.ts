@@ -10,8 +10,15 @@ export const useAuth = () => {
   const config = useRuntimeConfig()
   const router = useRouter()
 
+  // UBAH DISINI: Gunakan useCookie untuk user_profile agar data user (ID)
+  // tetap tersimpan (persist) walaupun halaman di-refresh.
   const token = useCookie('auth_token', { maxAge: 60 * 60 * 24 })
-  const user = useState<User | null>('user_profile', () => null)
+
+  // Kita simpan object user di cookie juga
+  const user = useCookie<User | null>('user_profile', {
+    maxAge: 60 * 60 * 24,
+    default: () => null
+  })
 
   const getBrowserIp = async (): Promise<string> => {
     try {
@@ -45,12 +52,16 @@ export const useAuth = () => {
       })
 
       if (response.success && response.data) {
+        // Simpan token
         token.value = response.data.token
+
+        // Simpan data user (ID & Nama) ke Cookie agar tidak hilang saat refresh
         user.value = {
           id: response.data.id,
           nama: response.data.nama,
           token: response.data.token
         }
+
         await router.push('/')
       } else {
         throw new Error(response.message || 'Login failed')
@@ -58,7 +69,7 @@ export const useAuth = () => {
 
     } catch (error: any) {
       token.value = null
-      user.value = null
+      user.value = null // Reset cookie user
       if (error.response?.status === 401) {
         throw new Error('Kode User atau Password salah.')
       }
@@ -66,13 +77,10 @@ export const useAuth = () => {
     }
   }
 
-  // --- LOGIC LOGOUT BARU ---
   const logout = async () => {
-    // 1. Jika user punya ID dan Token, panggil API Logout
     if (user.value?.id && token.value) {
       try {
         const apiEndpoint = `${config.public.apiBase}/FreelanceLogout`
-
         await $fetch(apiEndpoint, {
           method: 'POST',
           headers: {
@@ -85,15 +93,13 @@ export const useAuth = () => {
           }
         })
       } catch (error) {
-        console.error('Gagal logout dari server, membersihkan sesi lokal...', error)
+        console.error('Logout API error', error)
       }
     }
 
-    // 2. Hapus Token & Data Lokal (Penting!)
+    // Hapus Cookie
     token.value = null
     user.value = null
-
-    // 3. Redirect ke halaman Login
     router.push('/login')
   }
 
