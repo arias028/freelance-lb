@@ -106,11 +106,7 @@ async function handleChangePassword() {
                 description: 'Pastikan sudah menghubungi admin sebelum penggantian password.',
                 color: 'error'
             })
-
-            // Navigasi ke login setelah 3 detik
-            setTimeout(() => {
-                router.push('/login')
-            }, 3000)
+            // Tetap di halaman changepw agar user bisa mencoba lagi
         }
     } catch (error: any) {
         console.error('Change password error:', error)

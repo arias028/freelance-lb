@@ -6,8 +6,16 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2026-01-13',
 
-  modules: ['@nuxt/ui'],
+  modules: ['@nuxt/ui', '@nuxt/image'],
 
+  image: {
+    // Whitelist your S3 bucket domain here
+    domains: ['bina57.s3.ap-southeast-3.amazonaws.com'],
+    
+    // Optional: Set default quality
+    quality: 80,
+    format: ['webp']
+  },
 
   css: ['~/assets/css/main.css'],
 

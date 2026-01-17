@@ -118,8 +118,9 @@ async function handleLogin() {
         <!-- Header Section -->
         <div class="px-8 pt-10 pb-6 text-center bg-gradient-to-b from-slate-50/50 to-transparent">
             <div
-                class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-600 mb-6 shadow-lg shadow-primary-500/30 transform rotate-3 hover:rotate-6 transition-transform duration-300">
-                <Building2 class="w-8 h-8 text-white -rotate-3" />
+                class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white mb-6 shadow-lg shadow-slate-200/50 transform rotate-3 hover:rotate-6 transition-transform duration-300 overflow-hidden border border-slate-100">
+                <NuxtImg src="https://bina57.s3.ap-southeast-3.amazonaws.com/logo/konstruksi.png" alt="Logo Konstruksi"
+                    class="w-16 h-16 object-contain -rotate-3" loading="lazy" />
             </div>
 
             <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
