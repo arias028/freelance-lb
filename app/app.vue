@@ -79,19 +79,20 @@ function removeToast(id: string) {
 // Expose fungsi untuk digunakan di komponen lain
 provide('customToast', { addToast, removeToast, toasts })
 
-// Warna berdasarkan tipe toast
+// Warna ring/shadow halus untuk toast professional
 const colorClasses = {
-  success: 'bg-emerald-50 border-emerald-500 text-emerald-800',
-  error: 'bg-red-50 border-red-500 text-red-800',
-  warning: 'bg-amber-50 border-amber-500 text-amber-800',
-  info: 'bg-blue-50 border-blue-500 text-blue-800'
+  success: 'ring-1 ring-emerald-500/20 shadow-emerald-500/10',
+  error: 'ring-1 ring-red-500/20 shadow-red-500/10',
+  warning: 'ring-1 ring-amber-500/20 shadow-amber-500/10',
+  info: 'ring-1 ring-blue-500/20 shadow-blue-500/10'
 }
 
+// Icon background & color styling
 const iconClasses = {
-  success: 'text-emerald-500',
-  error: 'text-red-500',
-  warning: 'text-amber-500',
-  info: 'text-blue-500'
+  success: 'bg-emerald-100 text-emerald-600',
+  error: 'bg-red-100 text-red-600',
+  warning: 'bg-amber-100 text-amber-600',
+  info: 'bg-blue-100 text-blue-600'
 }
 </script>
 
@@ -126,51 +127,54 @@ const iconClasses = {
       </Transition>
     </Teleport>
 
+    <!-- Professional Top-Center Toast Container (Mobile & 40+ UX Optimized) -->
     <Teleport to="body">
-      <div class="fixed top-4 right-4 z-[9999] flex flex-col gap-3 max-w-sm w-full pointer-events-none">
-        <TransitionGroup enter-active-class="transition-all duration-300 ease-out"
-          leave-active-class="transition-all duration-300 ease-in" enter-from-class="opacity-0 translate-x-full"
-          leave-to-class="opacity-0 translate-x-full" move-class="transition-transform duration-300 ease-out">
+      <div
+        class="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-3 w-full max-w-md sm:max-w-lg pointer-events-none items-center px-4">
+        <TransitionGroup enter-active-class="transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1)"
+          leave-active-class="transition-all duration-200 ease-in"
+          enter-from-class="opacity-0 -translate-y-full scale-90" leave-to-class="opacity-0 -translate-y-4 scale-95"
+          move-class="transition-transform duration-300 ease-out">
           <div v-for="toast in toasts" :key="toast.id" :class="[
-            'pointer-events-auto rounded-xl border-l-4 p-4 shadow-lg backdrop-blur-sm transition-all duration-300',
+            'pointer-events-auto flex items-start gap-4 w-full bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-xl shadow-slate-200/40 transition-all duration-300',
             colorClasses[toast.color],
-            toast.visible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full'
+            toast.visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
           ]">
-            <div class="flex items-start gap-3">
-              <div :class="['flex-shrink-0 mt-0.5', iconClasses[toast.color]]">
-                <svg v-if="toast.color === 'success'" class="w-5 h-5" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <svg v-else-if="toast.color === 'error'" class="w-5 h-5" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <svg v-else-if="toast.color === 'warning'" class="w-5 h-5" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-
-              <div class="flex-1 min-w-0">
-                <h4 class="text-sm font-semibold">{{ toast.title }}</h4>
-                <p class="text-sm mt-0.5 opacity-90">{{ toast.description }}</p>
-              </div>
-
-              <button @click="removeToast(toast.id)"
-                class="flex-shrink-0 rounded-lg p-1 hover:bg-black/5 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+            <!-- Icon Box (Larger for visibility) -->
+            <div
+              :class="['flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center', iconClasses[toast.color]]">
+              <svg v-if="toast.color === 'success'" class="w-6 h-6" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              <svg v-else-if="toast.color === 'error'" class="w-6 h-6" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <svg v-else-if="toast.color === 'warning'" class="w-6 h-6" fill="none" stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
+
+            <!-- Content (Larger text for 40+ readability) -->
+            <div class="flex-1 min-w-0 pt-0.5">
+              <h4 class="text-base sm:text-lg font-bold text-slate-900">{{ toast.title }}</h4>
+              <p class="text-base font-medium text-slate-600 leading-normal mt-1">{{ toast.description }}</p>
+            </div>
+
+            <!-- Close Button (Larger touch target) -->
+            <button @click="removeToast(toast.id)"
+              class="flex-shrink-0 text-slate-400 hover:text-slate-600 p-3 -mr-2 rounded-xl hover:bg-slate-100 transition-colors">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         </TransitionGroup>
       </div>
