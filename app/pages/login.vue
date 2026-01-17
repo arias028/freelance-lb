@@ -202,6 +202,14 @@ async function handleLogin() {
 
             </form>
 
+            <!-- Link to Change Password -->
+            <div class="mt-6 text-center">
+                <NuxtLink to="/changepw"
+                    class="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline transition-colors duration-200">
+                    Lupa Password? Ganti password di sini
+                </NuxtLink>
+            </div>
+
             <div class="mt-8 pt-6 border-t border-slate-100/80">
                 <div
                     class="flex items-center justify-center space-x-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
