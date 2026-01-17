@@ -10,11 +10,55 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: {
-        lang: 'id', // Bahasa Indonesia
-        translate: 'no' // Mencegah terjemahan otomatis
+        lang: 'id',
+        translate: 'no'
       },
       meta: [
-        { name: 'google', content: 'notranslate' } // Mencegah Google Translate suggestion
+        { name: 'google', content: 'notranslate' }
+      ],
+      // FOUC Fix: Add 'loading' class to body by default
+      bodyAttrs: {
+        class: 'loading'
+      },
+      // Critical CSS for Immediate Loading State
+      style: [
+        {
+          innerHTML: `
+            /* Hide Vue app content until hydration */
+            body.loading #__nuxt { opacity: 0; transition: opacity 0.5s ease-in-out; }
+            
+            /* Fullscreen Loader Background */
+            body.loading::before {
+              content: "";
+              position: fixed;
+              inset: 0;
+              z-index: 999999;
+              background-color: #F1F5F9; /* Soft Cloud */
+              background-image: radial-gradient(#CBD5E1 1px, transparent 1px);
+              background-size: 24px 24px;
+            }
+
+            /* Simple & Elegant Spinner */
+            body.loading::after {
+              content: "";
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              z-index: 9999999;
+              width: 48px;
+              height: 48px;
+              margin: -24px 0 0 -24px;
+              border: 3px solid rgba(22, 101, 52, 0.1);
+              border-top-color: #166534; /* Forest Green */
+              border-radius: 50%;
+              animation: initial-spin 0.8s linear infinite;
+            }
+
+            @keyframes initial-spin {
+              to { transform: rotate(360deg); }
+            }
+          `
+        }
       ]
     }
   },

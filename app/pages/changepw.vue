@@ -240,7 +240,7 @@ async function handleChangePassword() {
                 <div
                     class="flex items-center justify-center gap-2 text-sm font-medium text-[#64748B] uppercase tracking-wider">
                     <Building2 class="w-4 h-4 text-[#166534]" />
-                    <span>IT Support PT. BINA</span>
+                    <span>© 2026 PT. BINA.</span>
                 </div>
             </div>
         </div>

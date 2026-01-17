@@ -12,11 +12,15 @@ export const useAuth = () => {
 
   // UBAH DISINI: Gunakan useCookie untuk user_profile agar data user (ID)
   // tetap tersimpan (persist) walaupun halaman di-refresh.
-  const token = useCookie('auth_token', { maxAge: 60 * 60 * 24 })
+  const token = useCookie('auth_token', {
+    maxAge: 60 * 60 * 24,
+    path: '/'
+  })
 
   // Kita simpan object user di cookie juga
   const user = useCookie<User | null>('user_profile', {
     maxAge: 60 * 60 * 24,
+    path: '/',
     default: () => null
   })
 

@@ -33,6 +33,9 @@ onMounted(() => {
   // Lock scroll saat pertama kali mount
   lockBodyScroll(true)
 
+  // Remove FOUC loader class
+  document.body.classList.remove('loading')
+
   // Delay sedikit untuk memastikan semua komponen sudah di-mount
   setTimeout(() => {
     isHydrating.value = false
