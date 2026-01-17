@@ -29,12 +29,19 @@ watch(isHydrating, (loading) => {
 }, { immediate: true })
 
 // Set hydration selesai saat app mounted di client
+// Import composable for global PWA install prompt listener
+const { setupInstallPrompt } = usePwaInstall()
+
 onMounted(() => {
   // Lock scroll saat pertama kali mount
   lockBodyScroll(true)
 
   // Remove FOUC loader class
   document.body.classList.remove('loading')
+
+  // JALANKAN DI SINI (GLOBAL)
+  // Agar event install tertangkap walau user belum masuk halaman login
+  setupInstallPrompt()
 
   // Delay sedikit untuk memastikan semua komponen sudah di-mount
   setTimeout(() => {

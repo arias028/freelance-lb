@@ -22,15 +22,20 @@ export function usePwaInstall() {
     }
 
     // Setup listener untuk beforeinstallprompt event
+    // Setup listener untuk beforeinstallprompt event
     const setupInstallPrompt = () => {
         if (import.meta.client) {
             checkIfInstalled()
 
-            // Jika sudah terinstall, tidak perlu tampilkan tombol install
+            // Jika sudah terinstall, set false
             if (isInstalled.value) {
                 isInstallable.value = false
                 return
             }
+
+            // "Hardcode" button agar muncul (untuk keperluan testing/manual install instruction)
+            // Tombol akan muncul jika belum terinstall, tidak peduli event beforeinstallprompt ada atau tidak
+            isInstallable.value = true
 
             // Listen untuk beforeinstallprompt event
             window.addEventListener('beforeinstallprompt', (e: any) => {
@@ -51,9 +56,11 @@ export function usePwaInstall() {
     }
 
     // Fungsi untuk memicu install prompt
-    const installApp = async (): Promise<boolean> => {
+    const installApp = async (): Promise<'accepted' | 'dismissed' | 'manual_required'> => {
         if (!deferredPrompt.value) {
-            return false
+            // Jika tidak ada prompt tersimpan (misal di desktop browser atau iOS)
+            // Kita return status manual_required agar UI bisa menampilkan instruksi
+            return 'manual_required'
         }
 
         // Tampilkan prompt install
@@ -67,10 +74,10 @@ export function usePwaInstall() {
 
         if (outcome === 'accepted') {
             isInstallable.value = false
-            return true
+            return 'accepted'
         }
 
-        return false
+        return 'dismissed'
     }
 
     return {

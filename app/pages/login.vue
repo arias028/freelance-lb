@@ -10,7 +10,7 @@ const { login } = useAuth()
 const toast = useCustomToast()
 
 // PWA Install - untuk tombol install aplikasi
-const { isInstallable, isInstalled, setupInstallPrompt, installApp } = usePwaInstall()
+const { isInstallable, isInstalled, installApp } = usePwaInstall()
 
 const form = reactive({
     kode_user: '',
@@ -82,8 +82,6 @@ function drawCaptcha(text: string) {
 
 onMounted(() => {
     generateCaptcha()
-    // Setup PWA install prompt listener
-    setupInstallPrompt()
 })
 
 async function handleLogin() {
@@ -112,6 +110,18 @@ async function handleLogin() {
         captchaInput.value = ''
     } finally {
         isLoading.value = false
+    }
+}
+
+async function handleInstall() {
+    const outcome = await installApp()
+    if (outcome === 'manual_required') {
+        toast.add({
+            title: 'Install Manual',
+            description: 'Browser tidak mendukung install otomatis. Silakan pilih "Install App" atau "Tambahkan ke Layar Utama" di menu browser.',
+            color: 'info',
+            duration: 8000
+        })
     }
 }
 </script>
@@ -234,7 +244,7 @@ async function handleLogin() {
 
             <!-- PWA Install Button -->
             <div v-if="isInstallable && !isInstalled" class="mt-6 text-center">
-                <button @click="installApp"
+                <button @click="handleInstall"
                     class="inline-flex items-center gap-2 min-h-[44px] px-5 py-3 text-base font-semibold text-white bg-gradient-to-r from-[#166534] to-[#15803D] hover:from-[#14532D] hover:to-[#166534] rounded-xl shadow-md shadow-[#166534]/20 transition-all duration-200 active:scale-[0.98]">
                     <Download class="w-5 h-5" />
                     <span>Install Aplikasi</span>
