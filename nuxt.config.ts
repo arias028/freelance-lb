@@ -7,6 +7,9 @@ export default defineNuxtConfig({
 
   modules: ['@nuxt/ui'],
 
+  css: ['~/assets/css/main.css'],
+
+
   runtimeConfig: {
     awsAccessKeyId: process.env.AWS_LASKARBUAH_HRD_ACCESS_KEY_ID,
     awsSecretAccessKey: process.env.AWS_LASKARBUAH_HRD_SECRET_ACCESS_KEY,
