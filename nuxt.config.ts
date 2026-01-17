@@ -6,6 +6,19 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2026-01-13',
 
+  // Konfigurasi head untuk mencegah Google Translate popup
+  app: {
+    head: {
+      htmlAttrs: {
+        lang: 'id', // Bahasa Indonesia
+        translate: 'no' // Mencegah terjemahan otomatis
+      },
+      meta: [
+        { name: 'google', content: 'notranslate' } // Mencegah Google Translate suggestion
+      ]
+    }
+  },
+
   modules: ['@nuxt/ui', '@nuxt/image', '@vite-pwa/nuxt'],
 
   image: {
