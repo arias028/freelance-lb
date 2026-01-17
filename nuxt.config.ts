@@ -6,15 +6,53 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2026-01-13',
 
-  modules: ['@nuxt/ui', '@nuxt/image'],
+  modules: ['@nuxt/ui', '@nuxt/image', '@vite-pwa/nuxt'],
 
   image: {
     // Whitelist your S3 bucket domain here
     domains: ['bina57.s3.ap-southeast-3.amazonaws.com'],
-    
+
     // Optional: Set default quality
     quality: 80,
     format: ['webp']
+  },
+
+  // Konfigurasi PWA untuk install aplikasi
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: 'Freelance Portal',
+      short_name: 'Freelance',
+      description: 'Portal Freelance PT. BINA',
+      theme_color: '#1e40af',
+      background_color: '#ffffff',
+      display: 'standalone',
+      orientation: 'portrait',
+      icons: [
+        {
+          src: 'https://bina57.s3.ap-southeast-3.amazonaws.com/logo/konstruksi.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: 'https://bina57.s3.ap-southeast-3.amazonaws.com/logo/konstruksi.png',
+          sizes: '512x512',
+          type: 'image/png'
+        }
+      ]
+    },
+    workbox: {
+      navigateFallback: '/',
+      // globPatterns dikonfigurasi otomatis saat production build
+    },
+    client: {
+      installPrompt: true
+    },
+    devOptions: {
+      enabled: true,
+      type: 'module',
+      suppressWarnings: true // Suppress warnings di development mode
+    }
   },
 
   css: ['~/assets/css/main.css'],

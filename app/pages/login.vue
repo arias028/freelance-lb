@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { Building2, User, Lock, ArrowRight, ShieldCheck, Loader2, Eye, EyeOff, RefreshCw } from 'lucide-vue-next'
+import { Building2, User, Lock, ArrowRight, ShieldCheck, Loader2, Eye, EyeOff, RefreshCw, Download } from 'lucide-vue-next'
 
 definePageMeta({
     layout: 'auth'
@@ -8,6 +8,9 @@ definePageMeta({
 
 const { login } = useAuth()
 const toast = useCustomToast()
+
+// PWA Install - untuk tombol install aplikasi
+const { isInstallable, isInstalled, setupInstallPrompt, installApp } = usePwaInstall()
 
 const form = reactive({
     kode_user: '',
@@ -79,6 +82,8 @@ function drawCaptcha(text: string) {
 
 onMounted(() => {
     generateCaptcha()
+    // Setup PWA install prompt listener
+    setupInstallPrompt()
 })
 
 async function handleLogin() {
@@ -209,6 +214,27 @@ async function handleLogin() {
                     class="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline transition-colors duration-200">
                     Lupa Password? Ganti password di sini
                 </NuxtLink>
+            </div>
+
+            <!-- PWA Install Button -->
+            <div v-if="isInstallable && !isInstalled" class="mt-4 text-center">
+                <button @click="installApp"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 rounded-xl shadow-md shadow-emerald-500/20 transition-all duration-200 active:scale-[0.98]">
+                    <Download class="w-4 h-4" />
+                    <span>Install Aplikasi</span>
+                </button>
+                <p class="mt-2 text-xs text-slate-400">
+                    Akses lebih cepat tanpa membuka browser
+                </p>
+            </div>
+
+            <!-- Already Installed Badge -->
+            <div v-else-if="isInstalled" class="mt-4 text-center">
+                <div
+                    class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-full border border-emerald-200">
+                    <ShieldCheck class="w-3.5 h-3.5" />
+                    <span>Aplikasi sudah terinstall</span>
+                </div>
             </div>
 
             <div class="mt-8 pt-6 border-t border-slate-100/80">
