@@ -43,12 +43,12 @@ export default defineNuxtConfig({
       orientation: 'portrait',
       icons: [
         {
-          src: 'https://bina57.s3.ap-southeast-3.amazonaws.com/logo/konstruksi.png',
+          src: 'https://bina57.s3.ap-southeast-3.amazonaws.com/logo/freelance.png',
           sizes: '192x192',
           type: 'image/png'
         },
         {
-          src: 'https://bina57.s3.ap-southeast-3.amazonaws.com/logo/konstruksi.png',
+          src: 'https://bina57.s3.ap-southeast-3.amazonaws.com/logo/freelance.png',
           sizes: '512x512',
           type: 'image/png'
         }

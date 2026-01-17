@@ -134,14 +134,14 @@ async function handleLogin() {
         <!-- Header Section -->
         <div class="px-8 pt-10 pb-8 text-center">
             <div
-                class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white mb-6 shadow-lg shadow-slate-200/50 transform rotate-3 hover:rotate-6 transition-transform duration-300 overflow-hidden border border-[#E2E8F0]">
-                <NuxtImg src="https://bina57.s3.ap-southeast-3.amazonaws.com/logo/konstruksi.png" alt="Logo Konstruksi"
-                    class="w-20 h-20 object-contain -rotate-3" loading="lazy" />
+                class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white mb-6 shadow-lg shadow-slate-200/50 transform transition-transform duration-300 overflow-hidden border border-[#E2E8F0]">
+                <NuxtImg src="https://bina57.s3.ap-southeast-3.amazonaws.com/logo/freelance.png" alt="Logo Konstruksi"
+                    class="w-20 h-20" loading="lazy" />
             </div>
 
             <!-- Heading: Midnight Navy #0F172A -->
             <h1 class="text-2xl md:text-3xl font-bold text-[#0F172A] tracking-tight">
-                Freelance Portal
+                Freelance LB
             </h1>
             <p class="mt-3 text-base text-[#64748B] font-medium">
                 Masuk untuk mengakses dashboard Anda

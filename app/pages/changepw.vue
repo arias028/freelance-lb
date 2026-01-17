@@ -122,55 +122,61 @@ async function handleChangePassword() {
 </script>
 
 <template>
+    <!-- 
+        Change Password Page - Corporate Nature Palette 
+        Matched with Login Page for consistency
+    -->
     <div
-        class="w-full bg-white rounded-2xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.07)] border border-slate-100 overflow-hidden">
+        class="login-card w-full bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-[#E2E8F0] overflow-hidden">
 
         <!-- Header Section -->
-        <div class="px-8 pt-10 pb-6 text-center bg-gradient-to-b from-slate-50/50 to-transparent">
+        <div class="px-8 pt-10 pb-8 text-center">
             <div
-                class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-amber-500 mb-6 shadow-lg shadow-amber-500/30 transform -rotate-3 hover:rotate-3 transition-transform duration-300">
-                <Key class="w-8 h-8 text-white rotate-3" />
+                class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white mb-6 shadow-lg shadow-slate-200/50 transform transition-transform duration-300 overflow-hidden border border-[#E2E8F0]">
+                <!-- Using Key icon with Forest Green accent -->
+                <Key class="w-10 h-10 text-[#166534]" />
             </div>
 
-            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+            <!-- Heading: Midnight Navy #0F172A -->
+            <h1 class="text-2xl md:text-3xl font-bold text-[#0F172A] tracking-tight">
                 Ganti Password
             </h1>
-            <p class="mt-2 text-sm text-slate-500 font-medium">
+            <p class="mt-3 text-base text-[#64748B] font-medium">
                 Masukkan kode user dan password baru Anda
             </p>
         </div>
 
         <!-- Form Section -->
         <div class="px-8 pb-10">
-            <form @submit.prevent="handleChangePassword" class="space-y-5">
+            <form @submit.prevent="handleChangePassword" class="space-y-6">
 
                 <!-- Kode User Input -->
-                <div class="space-y-1.5">
-                    <label class="text-sm font-semibold text-slate-700 ml-1">Kode User</label>
+                <div class="space-y-2">
+                    <label class="block text-base font-semibold text-[#0F172A] ml-1">Kode User</label>
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <User
-                                class="h-5 w-5 text-slate-400 group-focus-within:text-amber-500 transition-colors duration-200" />
+                                class="h-5 w-5 text-[#94A3B8] group-focus-within:text-[#166534] transition-colors duration-200" />
                         </div>
                         <input v-model="form.kode_user" type="text"
-                            class="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all duration-200"
+                            class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-all duration-200"
                             placeholder="Contoh: FRL0001" autofocus />
                     </div>
                 </div>
 
                 <!-- Password Baru Input -->
-                <div class="space-y-1.5">
-                    <label class="text-sm font-semibold text-slate-700 ml-1">Password Baru</label>
+                <div class="space-y-2">
+                    <label class="block text-base font-semibold text-[#0F172A] ml-1">Password Baru</label>
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <Lock
-                                class="h-5 w-5 text-slate-400 group-focus-within:text-amber-500 transition-colors duration-200" />
+                                class="h-5 w-5 text-[#94A3B8] group-focus-within:text-[#166534] transition-colors duration-200" />
                         </div>
                         <input v-model="form.password" :type="showPassword ? 'text' : 'password'"
-                            class="block w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all duration-200"
+                            class="login-input block w-full min-h-[48px] pl-12 pr-12 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-all duration-200"
                             placeholder="Minimal 6 karakter" />
                         <button type="button" @click="showPassword = !showPassword"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors duration-200">
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-[#64748B] hover:text-[#0F172A] focus:outline-none transition-colors duration-200">
                             <Eye v-if="!showPassword" class="h-5 w-5" />
                             <EyeOff v-else class="h-5 w-5" />
                         </button>
@@ -178,36 +184,40 @@ async function handleChangePassword() {
                 </div>
 
                 <!-- Konfirmasi Password Input -->
-                <div class="space-y-1.5">
-                    <label class="text-sm font-semibold text-slate-700 ml-1">Konfirmasi Password</label>
+                <div class="space-y-2">
+                    <label class="block text-base font-semibold text-[#0F172A] ml-1">Konfirmasi Password</label>
                     <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <Lock
-                                class="h-5 w-5 text-slate-400 group-focus-within:text-amber-500 transition-colors duration-200" />
+                                class="h-5 w-5 text-[#94A3B8] group-focus-within:text-[#166534] transition-colors duration-200" />
                         </div>
                         <input v-model="form.confirmPassword" :type="showConfirmPassword ? 'text' : 'password'"
-                            class="block w-full pl-11 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-sm placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all duration-200"
+                            class="login-input block w-full min-h-[48px] pl-12 pr-12 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-all duration-200"
                             placeholder="Ulangi password baru" />
                         <button type="button" @click="showConfirmPassword = !showConfirmPassword"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none transition-colors duration-200">
+                            class="absolute inset-y-0 right-0 pr-4 flex items-center text-[#64748B] hover:text-[#0F172A] focus:outline-none transition-colors duration-200">
                             <Eye v-if="!showConfirmPassword" class="h-5 w-5" />
                             <EyeOff v-else class="h-5 w-5" />
                         </button>
                     </div>
                 </div>
 
-                <!-- Info Box -->
-                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                    <p class="text-xs text-amber-700 leading-relaxed">
-                        <strong>Penting:</strong> Pastikan Anda sudah menghubungi admin untuk melakukan reset password
-                        sebelum mengisi form ini. Jika belum, silakan hubungi admin terlebih dahulu.
+                <!-- Info Box - Clean Slate/Blue Look -->
+                <div class="bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 flex gap-3">
+                    <div class="shrink-0 mt-0.5">
+                        <Building2 class="w-5 h-5 text-[#64748B]" />
+                    </div>
+                    <p class="text-sm text-[#475569] leading-relaxed">
+                        <strong class="text-[#0F172A]">Penting:</strong> Pastikan Anda sudah menghubungi admin untuk
+                        melakukan reset password
+                        sebelum mengisi form ini.
                     </p>
                 </div>
 
-                <!-- Submit Button -->
+                <!-- Submit Button: Midnight Navy -->
                 <div class="pt-2">
                     <button type="submit" :disabled="isLoading"
-                        class="w-full flex items-center justify-center space-x-2 py-3.5 px-4 border border-transparent rounded-xl text-sm font-bold text-white bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-70 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]">
+                        class="login-btn w-full flex items-center justify-center gap-3 min-h-[50px] py-3.5 px-6 border-0 rounded-xl text-base font-bold text-white bg-[#0F172A] hover:bg-[#1E293B] focus:outline-none focus:ring-4 focus:ring-[#0F172A]/30 shadow-lg shadow-[#0F172A]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]">
                         <Loader2 v-if="isLoading" class="animate-spin h-5 w-5" />
                         <span v-else>Ganti Password</span>
                         <Key v-if="!isLoading" class="h-5 w-5" />
@@ -217,19 +227,19 @@ async function handleChangePassword() {
             </form>
 
             <!-- Back to Login Link -->
-            <div class="mt-6 text-center">
+            <div class="mt-8 text-center">
                 <NuxtLink to="/login"
-                    class="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-700 transition-colors duration-200">
-                    <ArrowLeft class="w-4 h-4" />
+                    class="inline-flex items-center gap-2 text-base font-medium text-[#166534] hover:text-[#14532D] hover:underline underline-offset-4 transition-colors duration-200">
+                    <ArrowLeft class="w-5 h-5" />
                     <span>Kembali ke halaman login</span>
                 </NuxtLink>
             </div>
 
             <!-- Footer -->
-            <div class="mt-8 pt-6 border-t border-slate-100/80">
+            <div class="mt-10 pt-6 border-t border-[#E2E8F0]">
                 <div
-                    class="flex items-center justify-center space-x-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
-                    <Building2 class="w-3.5 h-3.5 text-amber-500" />
+                    class="flex items-center justify-center gap-2 text-sm font-medium text-[#64748B] uppercase tracking-wider">
+                    <Building2 class="w-4 h-4 text-[#166534]" />
                     <span>IT Support PT. BINA</span>
                 </div>
             </div>
