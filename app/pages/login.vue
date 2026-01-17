@@ -41,15 +41,15 @@ async function handleLogin() {
             </template>
 
             <form @submit.prevent="handleLogin" class="space-y-4">
-                <UFormGroup label="Kode User" name="kode_user">
+                <UFormField label="Kode User" name="kode_user">
                     <UInput v-model="form.kode_user" icon="i-heroicons-user" placeholder="Masukkan Kode User"
                         autofocus />
-                </UFormGroup>
+                </UFormField>
 
-                <UFormGroup label="Password" name="password">
+                <UFormField label="Password" name="password">
                     <UInput v-model="form.password" type="password" icon="i-heroicons-lock-closed"
                         placeholder="Masukkan Password" />
-                </UFormGroup>
+                </UFormField>
 
                 <UButton type="submit" block :loading="isLoading" color="primary">
                     Masuk Dashboard
