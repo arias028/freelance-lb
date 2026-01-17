@@ -257,8 +257,8 @@ async function handleLogin() {
             <div class="mt-10 pt-6 border-t border-[#E2E8F0]">
                 <div
                     class="flex items-center justify-center gap-2 text-sm font-medium text-[#64748B] uppercase tracking-wider">
-                    <ShieldCheck class="w-4 h-4 text-[#166534]" />
-                    <span>Sistem Terenkripsi & Aman</span>
+                    <Building2 class="w-4 h-4 text-[#166534]" />
+                    <span>IT Support PT. BINA</span>
                 </div>
             </div>
         </div>
