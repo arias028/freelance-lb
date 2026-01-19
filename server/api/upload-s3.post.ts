@@ -13,7 +13,7 @@ export default defineEventHandler(async (event) => {
 
     const file = files[0] // Ambil file pertama
     const fileExt = file.filename?.split('.').pop() || 'jpg'
-    const fileName = `attendance/${uuidv4()}.${fileExt}` // Path di S3: attendance/random-id.jpg
+    const fileName = `absen_freelance/${uuidv4()}.${fileExt}` // Path di S3: absen_freelance/random-id.jpg
 
     // 2. Init S3 Client
     const s3Client = new S3Client({
@@ -31,7 +31,6 @@ export default defineEventHandler(async (event) => {
             Key: fileName,
             Body: file.data,
             ContentType: file.type || 'image/jpeg',
-            ACL: 'public-read', // Agar bisa diakses via URL publik
         }))
 
         // 4. Return URL Public S3
@@ -39,8 +38,17 @@ export default defineEventHandler(async (event) => {
         const publicUrl = `https://${config.awsBucket}.s3.${config.awsRegion}.amazonaws.com/${fileName}`
 
         return { url: publicUrl }
-    } catch (error) {
-        console.error('S3 Upload Error:', error)
-        throw createError({ statusCode: 500, message: 'Failed to upload to S3' })
+    } catch (error: any) {
+        console.error('S3 Upload Error Full:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            requestId: error.$metadata?.requestId,
+            extendedRequestId: error.$metadata?.extendedRequestId
+        })
+        throw createError({
+            statusCode: 500,
+            message: `Failed to upload to S3: ${error.message} (${error.name})`
+        })
     }
 })

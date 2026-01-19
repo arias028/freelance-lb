@@ -140,7 +140,9 @@ export default defineNuxtConfig({
           urlPattern: ({ url }) => url.pathname.startsWith('/api'),
           handler: 'NetworkFirst'
         }
-      ]
+      ],
+      // Disable sourcemaps to fix /sw.js.map warnings
+      sourcemap: false
     },
     client: {
       installPrompt: true,

@@ -20,6 +20,8 @@ export const useEmployee = () => {
     const getAbsensiList = async () => {
         if (!user.value?.id) return []
         const response: any = await fetchApi(`GetList?id_freelance=${user.value.id}`)
+        // Handle raw array response or object wrapper
+        if (Array.isArray(response)) return response
         return response.success ? response.data : []
     }
 
