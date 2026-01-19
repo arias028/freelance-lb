@@ -10,12 +10,51 @@
     const isLoading = ref(false)
     const payrollData = ref<any>(null)
 
+    // Custom Dropdown State
+    const isDropdownOpen = ref(false)
+    const dropdownRef = ref<HTMLElement | null>(null)
+
     // Options for Period
-    const periods = [
+    interface PeriodOption {
+        label: string
+        value: string
+    }
+    const periods: PeriodOption[] = [
         { label: 'Minggu Ini', value: 'current' },
         { label: 'Minggu Lalu', value: 'last' }
     ]
     const selectedPeriodValue = ref('current')
+
+    // Computed for selected period label
+    const selectedPeriod = computed((): PeriodOption => {
+        return periods.find(p => p.value === selectedPeriodValue.value) ?? periods[0]!
+    })
+
+    // Toggle dropdown
+    function toggleDropdown() {
+        isDropdownOpen.value = !isDropdownOpen.value
+    }
+
+    // Select period
+    function selectPeriod(value: string) {
+        selectedPeriodValue.value = value
+        isDropdownOpen.value = false
+    }
+
+    // Close dropdown when clicking outside
+    function handleClickOutside(event: MouseEvent) {
+        if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
+            isDropdownOpen.value = false
+        }
+    }
+
+    onMounted(() => {
+        document.addEventListener('click', handleClickOutside)
+    })
+
+    onUnmounted(() => {
+        document.removeEventListener('click', handleClickOutside)
+    })
 
     // --- Date Logic (Wed - Tue) ---
     // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
@@ -115,17 +154,66 @@
                 <div
                     class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 justify-between items-center">
                     <div class="w-full sm:w-auto">
-                        <div class="relative">
-                            <select v-model="selectedPeriodValue"
-                                class="w-full sm:w-72 h-14 px-4 pr-10 text-lg font-bold text-[#0F172A] bg-white border-2 border-slate-200 rounded-xl shadow-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#166534]/30 focus:border-[#166534] hover:border-[#166534] transition-all duration-200">
-                                <option v-for="period in periods" :key="period.value" :value="period.value">
-                                    {{ period.label }}
-                                </option>
-                            </select>
-                            <!-- Custom dropdown arrow -->
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <UIcon name="i-heroicons-chevron-down-20-solid" class="w-5 h-5 text-[#166534]" />
-                            </div>
+                        <!-- Custom Dropdown -->
+                        <div ref="dropdownRef" class="relative">
+                            <!-- Dropdown Trigger Button -->
+                            <button @click="toggleDropdown"
+                                class="w-full sm:w-72 h-14 px-4 flex items-center justify-between gap-3 text-lg font-bold text-[#0F172A] bg-gradient-to-r from-white to-slate-50 border-2 rounded-xl shadow-sm cursor-pointer transition-all duration-300"
+                                :class="[
+                                    isDropdownOpen
+                                        ? 'border-[#166534] ring-4 ring-[#166534]/10 shadow-lg'
+                                        : 'border-slate-200 hover:border-[#166534]/50 hover:shadow-md'
+                                ]">
+                                <div class="flex items-center gap-3">
+
+                                    <span>{{ selectedPeriod.label }}</span>
+                                </div>
+                                <UIcon name="i-heroicons-chevron-down-20-solid"
+                                    class="w-5 h-5 text-[#166534] transition-transform duration-300"
+                                    :class="{ 'rotate-180': isDropdownOpen }" />
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <Transition enter-active-class="transition duration-200 ease-out"
+                                enter-from-class="opacity-0 -translate-y-2 scale-95"
+                                enter-to-class="opacity-100 translate-y-0 scale-100"
+                                leave-active-class="transition duration-150 ease-in"
+                                leave-from-class="opacity-100 translate-y-0 scale-100"
+                                leave-to-class="opacity-0 -translate-y-2 scale-95">
+                                <div v-if="isDropdownOpen"
+                                    class="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-slate-200 rounded-xl shadow-xl overflow-hidden z-50">
+                                    <div class="py-1">
+                                        <button v-for="period in periods" :key="period.value"
+                                            @click="selectPeriod(period.value)"
+                                            class="w-full px-4 py-3 flex items-center justify-between gap-3 transition-all duration-200"
+                                            :class="[
+                                                selectedPeriodValue === period.value
+                                                    ? 'bg-[#166534]/10 text-[#166534]'
+                                                    : 'text-[#0F172A] hover:bg-slate-50'
+                                            ]">
+                                            <div class="flex items-center gap-3">
+                                                <div class="p-2 rounded-lg transition-colors duration-200" :class="[
+                                                    selectedPeriodValue === period.value
+                                                        ? 'bg-[#166534]/20'
+                                                        : 'bg-slate-100'
+                                                ]">
+
+                                                </div>
+                                                <span class="font-semibold">{{ period.label }}</span>
+                                            </div>
+                                            <!-- Checkmark for selected -->
+                                            <Transition enter-active-class="transition duration-200 ease-out"
+                                                enter-from-class="opacity-0 scale-50"
+                                                enter-to-class="opacity-100 scale-100">
+                                                <div v-if="selectedPeriodValue === period.value"
+                                                    class="p-1 bg-[#166534] rounded-full">
+                                                    <!-- <UIcon name="i-heroicons-check" class="w-4 h-4 text-white" /> -->
+                                                </div>
+                                            </Transition>
+                                        </button>
+                                    </div>
+                                </div>
+                            </Transition>
                         </div>
                     </div>
                     <div class="text-right w-full sm:w-auto">
