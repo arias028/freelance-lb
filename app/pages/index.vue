@@ -54,7 +54,7 @@ const todayStatus = computed<{
 
 
 const recentActivities = [
-  { id: 1, title: 'Login Berhasil', time: 'Baru saja', icon: 'i-heroicons-check-circle', color: 'text-green-500' },
+  { id: 1, title: 'Login Berhasil', time: 'Baru saja', icon: 'i-heroicons-check-circle', color: 'text-[#166534]' },
   // { id: 2, title: 'Absensi Masuk', time: '08:00 WIB', icon: 'i-heroicons-clock', color: 'text-blue-500' },
 ]
 </script>

@@ -3,10 +3,10 @@ export const useEmployee = () => {
     const { user } = useAuth()
     const config = useRuntimeConfig()
 
-    // Wrapper untuk panggil API C# dengan Header yang benar
-    const fetchApi = async (endpoint: string, options: any = {}) => {
+    // Wrapper untuk panggil API C# dengan Header yang benar (Default Controller: FreelanceAbsensi)
+    const fetchApi = async (endpoint: string, options: any = {}, controller = 'FreelanceAbsensi') => {
         const token = useCookie('auth_token')
-        return await $fetch(`${config.public.apiBase}/FreelanceAbsensi/${endpoint}`, {
+        return await $fetch(`${config.public.apiBase}/${controller}/${endpoint}`, {
             ...options,
             headers: {
                 [config.public.headerKey]: config.public.apiKey,
@@ -50,5 +50,12 @@ export const useEmployee = () => {
         })
     }
 
-    return { getAbsensiList, uploadToS3, submitAbsen }
+    // 4. Get Profile Detail
+    const getEmployeeProfile = async () => {
+        if (!user.value?.id) return null
+        const response: any = await fetchApi(`GetDetail?id_freelance=${user.value.id}`, {}, 'FreelanceProfile')
+        return response.success ? response.data : null
+    }
+
+    return { getAbsensiList, uploadToS3, submitAbsen, getEmployeeProfile }
 }
