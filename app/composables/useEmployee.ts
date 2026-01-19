@@ -60,5 +60,18 @@ export const useEmployee = () => {
         return response.success ? response.data : null
     }
 
-    return { getAbsensiList, uploadToS3, submitAbsen, getEmployeeProfile }
+    // 5. Get Payroll Detail
+    const getDetailPayroll = async (start: string, end: string) => {
+        if (!user.value?.id) return null
+        const response: any = await fetchApi('GetPayroll', {
+            query: {
+                id_freelance: user.value.id,
+                start: start,
+                end: end
+            }
+        }, 'FreelancePayroll')
+        return response.success ? response.data : null
+    }
+
+    return { getAbsensiList, uploadToS3, submitAbsen, getEmployeeProfile, getDetailPayroll }
 }
