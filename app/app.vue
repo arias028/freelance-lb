@@ -33,20 +33,25 @@ watch(isHydrating, (loading) => {
 const { setupInstallPrompt } = usePwaInstall()
 
 onMounted(() => {
-  // Lock scroll saat pertama kali mount
-  lockBodyScroll(true)
+  try {
+    // Lock scroll saat pertama kali mount
+    lockBodyScroll(true)
 
-  // Remove FOUC loader class
-  document.body.classList.remove('loading')
+    // Remove FOUC loader class
+    document.body.classList.remove('loading')
 
-  // JALANKAN DI SINI (GLOBAL)
-  // Agar event install tertangkap walau user belum masuk halaman login
-  setupInstallPrompt()
-
-  // Delay sedikit untuk memastikan semua komponen sudah di-mount
-  setTimeout(() => {
-    isHydrating.value = false
-  }, 150)
+    // JALANKAN DI SINI (GLOBAL)
+    // Agar event install tertangkap walau user belum masuk halaman login
+    setupInstallPrompt()
+  } catch (error) {
+    console.error('App initialization error:', error)
+  } finally {
+    // Delay sedikit untuk memastikan semua komponen sudah di-mount
+    // Pastikan overlay hilang apapun yang terjadi
+    setTimeout(() => {
+      isHydrating.value = false
+    }, 150)
+  }
 })
 
 // State reaktif untuk menyimpan toast
@@ -115,79 +120,77 @@ const iconClasses = {
     </NuxtLayout>
 
     <Teleport to="body">
-      <Transition enter-active-class="transition-opacity duration-200 ease-out"
-        leave-active-class="transition-opacity duration-300 ease-in" enter-from-class="opacity-0"
-        leave-to-class="opacity-0">
-        <div v-if="isHydrating"
-          class="fixed inset-0 w-screen h-screen z-[999999] flex items-center justify-center bg-[#F1F5F9] select-none touch-none"
-          @click.stop.prevent @touchstart.stop.prevent @touchmove.stop.prevent @wheel.stop.prevent
-          @keydown.stop.prevent>
+      <div v-show="isHydrating"
+        class="fixed inset-0 w-screen h-screen z-[999999] flex items-center justify-center bg-[#F1F5F9] select-none touch-none transition-opacity duration-300"
+        :class="isHydrating ? 'opacity-100' : 'opacity-0 pointer-events-none'" @click.stop.prevent
+        @touchstart.stop.prevent @touchmove.stop.prevent @wheel.stop.prevent @keydown.stop.prevent>
 
-          <div class="flex flex-col items-center gap-6">
-            <svg class="animate-spin w-[50px] h-[50px] text-[#166534]" xmlns="http://www.w3.org/2000/svg" fill="none"
-              viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-              </path>
-            </svg>
-          </div>
-
+        <div class="flex flex-col items-center gap-6">
+          <svg class="animate-spin w-[50px] h-[50px] text-[#166534]" xmlns="http://www.w3.org/2000/svg" fill="none"
+            viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+            </path>
+          </svg>
         </div>
-      </Transition>
+
+      </div>
     </Teleport>
 
     <!-- Professional Top-Center Toast Container (Mobile & 40+ UX Optimized) -->
-    <Teleport to="body">
-      <div
-        class="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-3 w-full max-w-md sm:max-w-lg pointer-events-none items-center px-4">
-        <TransitionGroup enter-active-class="transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1)"
-          leave-active-class="transition-all duration-200 ease-in"
-          enter-from-class="opacity-0 -translate-y-full scale-90" leave-to-class="opacity-0 -translate-y-4 scale-95"
-          move-class="transition-transform duration-300 ease-out">
-          <div v-for="toast in toasts" :key="toast.id" :class="[
-            'pointer-events-auto flex items-start gap-4 w-full bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-xl shadow-slate-200/40 transition-all duration-300',
-            colorClasses[toast.color],
-            toast.visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
-          ]">
-            <!-- Icon Box (Larger for visibility) -->
-            <div
-              :class="['flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center', iconClasses[toast.color]]">
-              <svg v-if="toast.color === 'success'" class="w-6 h-6" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              <svg v-else-if="toast.color === 'error'" class="w-6 h-6" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              <svg v-else-if="toast.color === 'warning'" class="w-6 h-6" fill="none" stroke="currentColor"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
+    <ClientOnly>
+      <Teleport to="body">
+        <div
+          class="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-3 w-full max-w-md sm:max-w-lg pointer-events-none items-center px-4">
+          <TransitionGroup enter-active-class="transition-all duration-300 cubic-bezier(0.16, 1, 0.3, 1)"
+            leave-active-class="transition-all duration-200 ease-in"
+            enter-from-class="opacity-0 -translate-y-full scale-90" leave-to-class="opacity-0 -translate-y-4 scale-95"
+            move-class="transition-transform duration-300 ease-out">
+            <div v-for="toast in toasts" :key="toast.id" :class="[
+              'pointer-events-auto flex items-start gap-4 w-full bg-white/95 backdrop-blur-md rounded-2xl p-5 shadow-xl shadow-slate-200/40 transition-all duration-300',
+              colorClasses[toast.color],
+              toast.visible ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-4 scale-95'
+            ]">
+              <!-- Icon Box (Larger for visibility) -->
+              <div
+                :class="['flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center', iconClasses[toast.color]]">
+                <svg v-if="toast.color === 'success'" class="w-6 h-6" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <svg v-else-if="toast.color === 'error'" class="w-6 h-6" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <svg v-else-if="toast.color === 'warning'" class="w-6 h-6" fill="none" stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
 
-            <!-- Content (Larger text for 40+ readability) -->
-            <div class="flex-1 min-w-0 pt-0.5">
-              <h4 class="text-base sm:text-lg font-bold text-slate-900">{{ toast.title }}</h4>
-              <p class="text-base font-medium text-slate-600 leading-normal mt-1">{{ toast.description }}</p>
-            </div>
+              <!-- Content (Larger text for 40+ readability) -->
+              <div class="flex-1 min-w-0 pt-0.5">
+                <h4 class="text-base sm:text-lg font-bold text-slate-900">{{ toast.title }}</h4>
+                <p class="text-base font-medium text-slate-600 leading-normal mt-1">{{ toast.description }}</p>
+              </div>
 
-            <!-- Close Button (Larger touch target) -->
-            <button @click="removeToast(toast.id)"
-              class="flex-shrink-0 text-slate-400 hover:text-slate-600 p-3 -mr-2 rounded-xl hover:bg-slate-100 transition-colors">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </TransitionGroup>
-      </div>
-    </Teleport>
+              <!-- Close Button (Larger touch target) -->
+              <button @click="removeToast(toast.id)"
+                class="flex-shrink-0 text-slate-400 hover:text-slate-600 p-3 -mr-2 rounded-xl hover:bg-slate-100 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          </TransitionGroup>
+        </div>
+      </Teleport>
+    </ClientOnly>
   </UApp>
 </template>

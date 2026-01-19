@@ -10,6 +10,7 @@ const toast = useCustomToast() // Menggunakan Custom Toast yang lebih reliable
 const isLoading = ref(false)
 const attendanceList = ref<any[]>([])
 const locationCoords = ref<string>('')
+const dateString = ref('')
 
 // Camera State
 const isCameraOpen = ref(false)
@@ -20,6 +21,9 @@ const currentImageUrl = ref<string | null>(null)
 
 // --- Lifecycle ---
 onMounted(async () => {
+    dateString.value = new Date().toLocaleDateString('id-ID', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    })
     await loadData()
     initLocation()
 })
@@ -165,10 +169,7 @@ const formatTime = (dateStr: string | null) => {
                     Absensi Staff
                 </h1>
                 <div class="text-sm text-slate-500">
-                    {{ new Date().toLocaleDateString('id-ID', {
-                        weekday: 'long', day: 'numeric', month: 'long', year:
-                            'numeric'
-                    }) }}
+                    {{ dateString }}
                 </div>
             </div>
 
