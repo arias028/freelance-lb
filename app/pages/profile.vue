@@ -44,7 +44,7 @@ async function handleLogout() {
                     <p class="text-lg font-semibold">{{ user?.nama || '-' }}</p>
                 </div>
 
-                <UDivider />
+                <hr class="border-gray-200 dark:border-gray-800" />
 
                 <div>
                     <label class="text-sm font-medium text-gray-500">ID Freelance</label>

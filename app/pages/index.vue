@@ -52,32 +52,6 @@ const todayStatus = computed<{
   }
 })
 
-const modules = [
-  {
-    title: 'Absensi',
-    desc: 'Check-in & Laporan Harian',
-    icon: 'i-heroicons-clock',
-    to: '/absen'
-  },
-  {
-    title: 'Payroll',
-    desc: 'Slip Gaji & Riwayat',
-    icon: 'i-heroicons-banknotes',
-    to: '/payroll'
-  },
-  {
-    title: 'Surat',
-    desc: 'Permohonan Izin & Cuti',
-    icon: 'i-heroicons-document-text',
-    to: '/letter'
-  },
-  {
-    title: 'Profil',
-    desc: 'Data Diri & Pengaturan',
-    icon: 'i-heroicons-user-circle',
-    to: '/profile'
-  }
-]
 
 const recentActivities = [
   { id: 1, title: 'Login Berhasil', time: 'Baru saja', icon: 'i-heroicons-check-circle', color: 'text-green-500' },
@@ -108,8 +82,7 @@ const recentActivities = [
       </div>
 
       <!-- Quick Stats / Highlights -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <!-- Card Link Modules -->
+      <!-- <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <NuxtLink v-for="item in modules" :key="item.title" :to="item.to"
           class="group relative bg-white border border-slate-200 rounded-xl p-6 transition-all duration-300 hover:border-[#166534] hover:shadow-md">
 
@@ -130,7 +103,7 @@ const recentActivities = [
             </p>
           </div>
         </NuxtLink>
-      </div>
+      </div> -->
 
       <!-- Main Content Area: Status & Announcements -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">

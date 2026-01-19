@@ -8,6 +8,7 @@ export default defineNuxtConfig({
 
   // Konfigurasi head untuk mencegah Google Translate popup
   app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
     head: {
       htmlAttrs: {
         lang: 'id',
@@ -128,7 +129,7 @@ export default defineNuxtConfig({
       navigateFallback: '/',
 
       // 2. Don't try to cache API calls or dynamic routes
-      navigateFallbackDenylist: [/^\/api\//],
+      navigateFallbackDenylist: [/^\/api\//, /\.map$/],
 
       // 3. Cache these file types
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
