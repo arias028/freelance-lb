@@ -43,6 +43,39 @@ onMounted(() => {
     // JALANKAN DI SINI (GLOBAL)
     // Agar event install tertangkap walau user belum masuk halaman login
     setupInstallPrompt()
+
+    // --- SESSION CHECK ---
+    const { user, logout } = useAuth()
+    const config = useRuntimeConfig()
+    const token = useCookie('auth_token')
+
+    if (token.value && user.value?.id) {
+      $fetch(`${config.public.apiBase}/FreelanceCheckSession`, {
+        method: 'POST',
+        headers: {
+          [config.public.headerKey]: config.public.apiKey,
+          'Authorization': `Bearer ${token.value}`
+        },
+        body: { id_freelance: user.value.id }
+      })
+        .then((status) => {
+          // Jika status bukan 1, berarti sesi tidak valid (force logout)
+          if (status !== 1) {
+            logout().then(() => {
+              addToast({
+                title: 'Sesi Berakhir',
+                description: 'Akun Anda telah login di perangkat lain atau sesi habis. Silahkan login kembali.',
+                color: 'warning',
+                duration: 8000
+              })
+              navigateTo('/login')
+            })
+          }
+        })
+        .catch((err) => {
+          console.warn('Session check failed', err)
+        })
+    }
   } catch (error) {
     console.error('App initialization error:', error)
   } finally {
