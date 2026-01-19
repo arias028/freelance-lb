@@ -33,9 +33,9 @@ export function usePwaInstall() {
                 return
             }
 
-            // "Hardcode" button agar muncul (untuk keperluan testing/manual install instruction)
-            // Tombol akan muncul jika belum terinstall, tidak peduli event beforeinstallprompt ada atau tidak
-            isInstallable.value = true
+            // HAPUS ATAU KOMENTARI BARIS INI:
+            // isInstallable.value = true  <-- INI PENYEBABNYA. 
+            // Jangan paksa true. Biarkan event listener di bawah yang mengubahnya jadi true.
 
             // Listen untuk beforeinstallprompt event
             window.addEventListener('beforeinstallprompt', (e: any) => {
@@ -44,6 +44,7 @@ export function usePwaInstall() {
                 // Simpan event untuk digunakan nanti
                 deferredPrompt.value = e
                 isInstallable.value = true
+                console.log('PWA Event fired!')
             })
 
             // Listen untuk appinstalled event

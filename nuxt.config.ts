@@ -16,6 +16,11 @@ export default defineNuxtConfig({
       meta: [
         { name: 'google', content: 'notranslate' }
       ],
+      link: [
+        { rel: 'manifest', href: '/manifest.webmanifest' }, // <--- Manual Link
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/pwa-192x192.png' } // Optional: for iPhone
+      ],
       // FOUC Fix: Add 'loading' class to body by default
       bodyAttrs: {
         class: 'loading'
@@ -76,6 +81,7 @@ export default defineNuxtConfig({
 
   // Konfigurasi PWA untuk install aplikasi
   pwa: {
+    filename: 'manifest.webmanifest',
     registerType: 'autoUpdate',
     manifest: {
       name: 'Freelance LB',
@@ -85,23 +91,56 @@ export default defineNuxtConfig({
       background_color: '#F1F5F9',
       display: 'standalone',
       orientation: 'portrait',
+      start_url: '/',
       icons: [
         {
           src: '/pwa-192x192.png',
           sizes: '192x192',
-          type: 'image/png'
+          type: 'image/png',
+          purpose: 'any'
         },
         {
           src: '/pwa-512x512.png',
           sizes: '512x512',
           type: 'image/png',
-          purpose: 'any maskable'
+          purpose: 'maskable'
+        }
+      ],
+      screenshots: [
+        {
+          src: '/screenshot-mobile.png', // Anda harus upload gambar screenshot tampilan HP (sekitar 1080x1920) ke folder public
+          sizes: '1080x1920',
+          type: 'image/png',
+          form_factor: 'narrow',
+          label: 'Tampilan Mobile'
+        },
+        {
+          src: '/screenshot-desktop.png', // Upload gambar screenshot desktop (sekitar 1920x1080) ke folder public
+          sizes: '1920x1080',
+          type: 'image/png',
+          form_factor: 'wide',
+          label: 'Tampilan Desktop'
         }
       ]
     },
     workbox: {
+      // 1. Tell it that / is effectively index.html
       navigateFallback: '/',
-      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
+
+      // 2. Don't try to cache API calls or dynamic routes
+      navigateFallbackDenylist: [/^\/api\//],
+
+      // 3. Cache these file types
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
+
+      // 4. IMPORTANT: Fix the "Precache" errors
+      // This stops it from trying to find /login.html
+      runtimeCaching: [
+        {
+          urlPattern: ({ url }) => url.pathname.startsWith('/api'),
+          handler: 'NetworkFirst'
+        }
+      ]
     },
     client: {
       installPrompt: true,
