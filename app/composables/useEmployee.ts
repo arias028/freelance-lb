@@ -53,7 +53,10 @@ export const useEmployee = () => {
     // 4. Get Profile Detail
     const getEmployeeProfile = async () => {
         if (!user.value?.id) return null
-        const response: any = await fetchApi(`GetDetail?id_freelance=${user.value.id}`, {}, 'FreelanceProfile')
+        // Menggunakan query params agar lebih bersih aripada string concatenation
+        const response: any = await fetchApi('GetDetail', {
+            query: { id_freelance: user.value.id }
+        }, 'FreelanceProfile')
         return response.success ? response.data : null
     }
 
