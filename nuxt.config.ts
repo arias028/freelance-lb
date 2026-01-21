@@ -55,7 +55,7 @@ export default defineNuxtConfig({
         { name: 'google', content: 'notranslate' }
       ],
       link: [
-        // { rel: 'manifest', href: '/manifest.webmanifest' },
+        { rel: 'manifest', href: '/manifest.webmanifest' },
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'apple-touch-icon', href: '/pwa-192x192.png' }
       ],
