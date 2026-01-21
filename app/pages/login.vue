@@ -10,7 +10,7 @@ const { login } = useAuth()
 const toast = useCustomToast()
 
 // PWA Install - untuk tombol install aplikasi
-const { isInstallable, isInstalled, installApp } = usePwaInstall()
+const { isInstallable, isInstalled, installApp, setupInstallPrompt } = usePwaInstall()
 
 const form = reactive({
     kode_user: '',
@@ -82,6 +82,7 @@ function drawCaptcha(text: string) {
 
 onMounted(() => {
     generateCaptcha()
+    setupInstallPrompt()
 })
 
 async function handleLogin() {
