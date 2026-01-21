@@ -147,7 +147,8 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
-      navigateFallback: '/',
+      // Set to null because you are using SSR (dynamic pages)
+      navigateFallback: null,
       navigateFallbackDenylist: [/^\/api\//, /\.map$/],
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
       runtimeCaching: [
