@@ -3,7 +3,22 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
-
+  routeRules: {
+    '/**': {
+      headers: {
+        // Mencegah website di-iframe oleh situs lain (Anti-Clickjacking)
+        'X-Frame-Options': 'SAMEORIGIN',
+        // Mencegah browser menebak MIME type (Security)
+        'X-Content-Type-Options': 'nosniff',
+        // Memaksa HTTPS (HSTS)
+        'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+        // Isolasi Origin (COOP) - Penting untuk performa & security
+        'Cross-Origin-Opener-Policy': 'same-origin',
+        // Referrer Policy
+        'Referrer-Policy': 'strict-origin-when-cross-origin'
+      }
+    }
+  },
   compatibilityDate: '2026-01-13',
 
   // Tambahkan modul fonts di sini
