@@ -4,19 +4,24 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
   routeRules: {
+    // 1. GLOBAL SECURITY HEADERS
     '/**': {
       headers: {
-        // Mencegah website di-iframe oleh situs lain (Anti-Clickjacking)
         'X-Frame-Options': 'SAMEORIGIN',
-        // Mencegah browser menebak MIME type (Security)
         'X-Content-Type-Options': 'nosniff',
-        // Memaksa HTTPS (HSTS)
         'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-        // Isolasi Origin (COOP) - Penting untuk performa & security
         'Cross-Origin-Opener-Policy': 'same-origin',
-        // Referrer Policy
         'Referrer-Policy': 'strict-origin-when-cross-origin'
       }
+    },
+
+    // 2. FORCE MIME TYPES FOR PWA FILES
+    // Ensures Service Worker is treated as Script, Manifest as JSON
+    '/sw.js': {
+      headers: { 'Content-Type': 'application/javascript' }
+    },
+    '/manifest.webmanifest': {
+      headers: { 'Content-Type': 'application/manifest+json' }
     }
   },
   compatibilityDate: '2026-01-13',
@@ -102,8 +107,7 @@ export default defineNuxtConfig({
   },
 
   pwa: {
-    // ... konfigurasi pwa Anda ...
-    // filename: 'manifest.webmanifest',
+    // CRITICAL PWA FIX: Set to 'sw.js' so browsers treat it as code, not data
     filename: 'sw.js',
     registerType: 'autoUpdate',
     manifest: {
