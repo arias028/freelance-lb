@@ -22,32 +22,30 @@ export function usePwaInstall() {
     }
 
     // Setup listener untuk beforeinstallprompt event
-    // Setup listener untuk beforeinstallprompt event
     const setupInstallPrompt = () => {
         if (import.meta.client) {
             checkIfInstalled()
 
-            // Jika sudah terinstall, set false
+            // 1. If already installed, hide button immediately
             if (isInstalled.value) {
                 isInstallable.value = false
                 return
             }
 
-            // HAPUS ATAU KOMENTARI BARIS INI:
-            // isInstallable.value = true  <-- INI PENYEBABNYA. 
-            // Jangan paksa true. Biarkan event listener di bawah yang mengubahnya jadi true.
+            // 2. Show button by default!
+            // This ensures the button appears so users can at least see "Manual Install" instructions
+            // if the browser doesn't support the automatic popup (like iOS).
+            isInstallable.value = true
 
-            // Listen untuk beforeinstallprompt event
+            // 3. Listen for the automatic prompt event (Chrome/Edge/Android)
             window.addEventListener('beforeinstallprompt', (e: any) => {
-                // Prevent default browser prompt
                 e.preventDefault()
-                // Simpan event untuk digunakan nanti
                 deferredPrompt.value = e
-                isInstallable.value = true
-                console.log('PWA Event fired!')
+                isInstallable.value = true // Ensure it stays true
+                console.log('PWA Event fired! Automatic install is ready.')
             })
 
-            // Listen untuk appinstalled event
+            // 4. Listen for appinstalled event
             window.addEventListener('appinstalled', () => {
                 isInstalled.value = true
                 isInstallable.value = false
