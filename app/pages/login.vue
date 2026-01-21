@@ -191,7 +191,8 @@ async function handleInstall() {
                         </div>
                         <!-- Input: min-height 48px, 16px text, border #CBD5E1, focus border #166534 -->
                         <input v-model="form.kode_user" type="text"
-                            class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-colors duration-200"
+                            @input="form.kode_user = form.kode_user.toUpperCase()"
+                            class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-colors duration-200 uppercase"
                             placeholder="Contoh: FRL0001" autofocus />
                     </div>
                 </div>

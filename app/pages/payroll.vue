@@ -95,8 +95,15 @@ function selectPeriod(value: string) {
     isDropdownOpen.value = false
 }
 
-// Klik di luar dropdown untuk menutup
+// Fix: Clear cached data on mount to ensure fresh state on client-side navigation
 onMounted(() => {
+    // Reset the data when navigating to this page via client-side navigation
+    // This ensures "Data payroll belum tersedia" shows correctly until user selects a period
+    if (!selectedPeriodValue.value) {
+        clearNuxtData('payroll-data')
+    }
+
+    // Klik di luar dropdown untuk menutup
     document.addEventListener('click', (event) => {
         if (dropdownRef.value && !dropdownRef.value.contains(event.target as Node)) {
             isDropdownOpen.value = false
