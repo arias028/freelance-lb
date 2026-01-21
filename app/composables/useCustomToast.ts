@@ -22,8 +22,12 @@ export function useCustomToast() {
     // Mengakses state yang sama dengan app.vue
     const toasts = useState<ToastItem[]>('custom-toasts', () => [])
 
-    // Fungsi untuk menambahkan toast baru
+    // Fungsi untuk menambahkan toast baru (maksimum 1 toast, menggantikan yang sebelumnya)
     function add(options: ToastOptions) {
+        // Clear semua toast yang ada sebelum menambahkan yang baru
+        // Ini memastikan hanya 1 toast yang tampil sekaligus
+        toasts.value = []
+
         const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`
         const toast: ToastItem = {
             id,
@@ -33,7 +37,7 @@ export function useCustomToast() {
             visible: true
         }
 
-        toasts.value = [...toasts.value, toast]
+        toasts.value = [toast]
 
         // Auto-remove setelah duration (default 5 detik)
         setTimeout(() => {

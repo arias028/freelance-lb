@@ -90,8 +90,12 @@ onMounted(() => {
 // State reaktif untuk menyimpan toast
 const toasts = useState<ToastItem[]>('custom-toasts', () => [])
 
-// Fungsi untuk menambahkan toast baru
+// Fungsi untuk menambahkan toast baru (maksimum 1 toast, menggantikan yang sebelumnya)
 function addToast(options: { title: string; description: string; color?: 'success' | 'error' | 'warning' | 'info'; duration?: number }) {
+  // Clear semua toast yang ada sebelum menambahkan yang baru
+  // Ini memastikan hanya 1 toast yang tampil sekaligus
+  toasts.value = []
+
   const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2)}`
   const toast: ToastItem = {
     id,
@@ -101,7 +105,7 @@ function addToast(options: { title: string; description: string; color?: 'succes
     visible: true
   }
 
-  toasts.value = [...toasts.value, toast]
+  toasts.value = [toast]
 
   // Auto-remove setelah duration (default 5 detik)
   setTimeout(() => {
