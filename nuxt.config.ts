@@ -6,7 +6,23 @@ export default defineNuxtConfig({
 
   compatibilityDate: '2026-01-13',
 
-  // Konfigurasi head untuk mencegah Google Translate popup
+  // Tambahkan modul fonts di sini
+  modules: [
+    '@nuxt/ui', 
+    '@nuxt/image', 
+    '@vite-pwa/nuxt',
+    '@nuxt/fonts' // <--- SOLUSI RENDER BLOCKING & PRELOAD
+  ],
+
+  // Konfigurasi khusus font (Opsional, defaultnya sudah bagus)
+  fonts: {
+    defaults: {
+      weights: [400, 500, 600, 700],
+      styles: ['normal', 'italic'],
+      subsets: ['latin'] // Mengurangi ukuran file font
+    }
+  },
+
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     head: {
@@ -19,33 +35,27 @@ export default defineNuxtConfig({
         { name: 'google', content: 'notranslate' }
       ],
       link: [
-        { rel: 'manifest', href: '/manifest.webmanifest' }, // <--- Manual Link
+        // { rel: 'manifest', href: '/manifest.webmanifest' },
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'apple-touch-icon', href: '/pwa-192x192.png' } // Optional: for iPhone
+        { rel: 'apple-touch-icon', href: '/pwa-192x192.png' }
       ],
-      // FOUC Fix: Add 'loading' class to body by default
       bodyAttrs: {
         class: 'loading'
       },
-      // Critical CSS for Immediate Loading State
+      // ... style loader Anda (biarkan tetap sama) ...
       style: [
         {
           innerHTML: `
-            /* Hide Vue app content until hydration */
             body.loading #__nuxt { opacity: 0; transition: opacity 0.5s ease-in-out; }
-            
-            /* Fullscreen Loader Background */
             body.loading::before {
               content: "";
               position: fixed;
               inset: 0;
               z-index: 999999;
-              background-color: #F1F5F9; /* Soft Cloud */
+              background-color: #F1F5F9;
               background-image: radial-gradient(#CBD5E1 1px, transparent 1px);
               background-size: 24px 24px;
             }
-
-            /* Simple & Elegant Spinner */
             body.loading::after {
               content: "";
               position: fixed;
@@ -56,11 +66,10 @@ export default defineNuxtConfig({
               height: 48px;
               margin: -24px 0 0 -24px;
               border: 3px solid rgba(22, 101, 52, 0.1);
-              border-top-color: #166534; /* Forest Green */
+              border-top-color: #166534;
               border-radius: 50%;
               animation: initial-spin 0.8s linear infinite;
             }
-
             @keyframes initial-spin {
               to { transform: rotate(360deg); }
             }
@@ -70,19 +79,15 @@ export default defineNuxtConfig({
     }
   },
 
-  modules: ['@nuxt/ui', '@nuxt/image', '@vite-pwa/nuxt'],
-
+  // ... sisa konfigurasi Anda (image, pwa, runtimeConfig, css) ...
   image: {
-    // Whitelist your S3 bucket domain here
     domains: ['bina57.s3.ap-southeast-3.amazonaws.com'],
-
-    // Optional: Set default quality
     quality: 80,
     format: ['webp']
   },
 
-  // Konfigurasi PWA untuk install aplikasi
   pwa: {
+     // ... konfigurasi pwa Anda ...
     filename: 'manifest.webmanifest',
     registerType: 'autoUpdate',
     manifest: {
@@ -110,14 +115,14 @@ export default defineNuxtConfig({
       ],
       screenshots: [
         {
-          src: '/screenshot-mobile.png', // Anda harus upload gambar screenshot tampilan HP (sekitar 1080x1920) ke folder public
+          src: '/screenshot-mobile.png',
           sizes: '1080x1920',
           type: 'image/png',
           form_factor: 'narrow',
           label: 'Tampilan Mobile'
         },
         {
-          src: '/screenshot-desktop.png', // Upload gambar screenshot desktop (sekitar 1920x1080) ke folder public
+          src: '/screenshot-desktop.png',
           sizes: '1920x1080',
           type: 'image/png',
           form_factor: 'wide',
@@ -126,24 +131,15 @@ export default defineNuxtConfig({
       ]
     },
     workbox: {
-      // 1. Tell it that / is effectively index.html
       navigateFallback: '/',
-
-      // 2. Don't try to cache API calls or dynamic routes
       navigateFallbackDenylist: [/^\/api\//, /\.map$/],
-
-      // 3. Cache these file types
       globPatterns: ['**/*.{js,css,html,png,svg,ico}'],
-
-      // 4. IMPORTANT: Fix the "Precache" errors
-      // This stops it from trying to find /login.html
       runtimeCaching: [
         {
           urlPattern: ({ url }) => url.pathname.startsWith('/api'),
           handler: 'NetworkFirst'
         }
       ],
-      // Disable sourcemaps to fix /sw.js.map warnings
       sourcemap: false
     },
     client: {
@@ -153,7 +149,7 @@ export default defineNuxtConfig({
     devOptions: {
       enabled: true,
       type: 'module',
-      suppressWarnings: true // Suppress warnings di development mode
+      suppressWarnings: true
     }
   },
 
@@ -164,7 +160,6 @@ export default defineNuxtConfig({
     awsSecretAccessKey: process.env.AWS_LASKARBUAH_HRD_SECRET_ACCESS_KEY,
     awsRegion: process.env.AWS_LASKARBUAH_HRD_REGION,
     awsBucket: process.env.AWS_LASKARBUAH_HRD_BUCKET,
-
     public: {
       siteName: 'Freelance Laskarbuah',
       appId: process.env.NUXT_PUBLIC_APP_ID || '16',

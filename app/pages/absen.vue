@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick } from 'vue'
 
+// SEO Meta
+useHead({
+    title: 'Absensi - Freelance LB',
+    meta: [{ name: 'description', content: 'Halaman absensi harian staff Freelance LB.' }]
+})
+
 definePageMeta({ middleware: 'auth' })
 
 const { getAbsensiList, uploadToS3, submitAbsen } = useEmployee()
-const toast = useCustomToast() // Menggunakan Custom Toast yang lebih reliable
+const toast = useCustomToast()
 
 // --- State ---
-const isLoading = ref(false)
-const attendanceList = ref<any[]>([])
 const locationCoords = ref<string>('')
 const dateString = ref('')
-
 const hasPermissions = ref(false)
 const permissionErrorMessage = ref('')
 
@@ -22,88 +25,88 @@ const canvasEl = ref<HTMLCanvasElement | null>(null)
 const currentImageFile = ref<File | null>(null)
 const currentImageUrl = ref<string | null>(null)
 
+// --- 1. DATA FETCHING (OPTIMIZED) ---
+// Menggunakan useAsyncData agar data ditarik di SERVER (SSR).
+// Halaman sampai ke user sudah berisi tabel jadwal. LCP INSTAN.
+const { data: attendanceList, status, refresh: refreshData } = await useAsyncData('attendance-list',
+    () => getAbsensiList(),
+    {
+        default: () => [], // Mencegah flicker null
+        lazy: false // Load eager untuk LCP bagus
+    }
+)
+
+const isLoading = computed(() => status.value === 'pending')
+
 // --- Lifecycle ---
-onMounted(async () => {
+onMounted(() => {
+    // Set tanggal (Client side only untuk hindari hydration mismatch)
     dateString.value = new Date().toLocaleDateString('id-ID', {
         weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     })
-    await requestAllPermissions()
+
+    // JALANKAN PERMISSION CHECK SECARA BACKGROUND (NON-BLOCKING)
+    // Biarkan user melihat data dulu, pop-up izin muncul belakangan.
+    requestAllPermissions()
 })
 
 // --- Methods ---
 
-// 1. Permission Check (New)
+// 2. Permission Check (Non-Blocking Flow)
 async function requestAllPermissions() {
-    isLoading.value = true
     permissionErrorMessage.value = ''
-    hasPermissions.value = false
+
+    // Cek apakah browser support
+    if (!navigator.geolocation || !navigator.mediaDevices?.getUserMedia) {
+        permissionErrorMessage.value = 'Browser tidak mendukung Geolocation atau Kamera.'
+        return
+    }
 
     try {
-        // A. Check Geolocation
-        await new Promise<void>((resolve, reject) => {
-            if (!navigator.geolocation) return reject('Geolocation tidak didukung browser ini.')
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-                    locationCoords.value = `${pos.coords.latitude},${pos.coords.longitude}`
-                    resolve()
-                },
-                (err) => reject('Akses lokasi (GPS) ditolak. Harap izinkan akses lokasi untuk melanjutkan.')
-            )
-        })
+        // A. Request Location (Background)
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                locationCoords.value = `${pos.coords.latitude},${pos.coords.longitude}`
+                hasPermissions.value = true // Lokasi dapat, kita anggap aman dulu
+            },
+            (err) => {
+                console.warn('Lokasi ditolak:', err)
+                // Jangan blokir UI, cukup beri notifikasi visual nanti saat mau absen
+                permissionErrorMessage.value = 'Akses lokasi diperlukan untuk validasi absen.'
+            }
+        )
 
-        // B. Check Camera
-        if (!navigator.mediaDevices?.getUserMedia) throw new Error('Browser tidak mendukung akses kamera.')
+        // B. Camera Check (Kita tidak minta stream sekarang agar tidak berat)
+        // Kita hanya cek ketersediaan API. Stream diminta saat tombol kamera ditekan.
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        const hasCamera = devices.some(device => device.kind === 'videoinput')
 
-        // Request stream just to trigger permission prompt
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+        if (!hasCamera) {
+            permissionErrorMessage.value = 'Kamera tidak terdeteksi.'
+        }
 
-        // Stop immediately - we just needed permission granted
-        stream.getTracks().forEach(track => track.stop())
-
-        // If passed both
-        hasPermissions.value = true
-        await loadData()
-
-    } catch (error: any) {
-        console.warn('Permission Error:', error)
-        permissionErrorMessage.value = typeof error === 'string'
-            ? error
-            : (error.message || 'Izin akses lokasi dan kamera diperlukan.')
-
-        // Show permanent toast/alert as well
-        toast.add({
-            title: 'Akses Ditolak',
-            description: permissionErrorMessage.value,
-            color: 'error',
-            duration: 10000
-        })
-    } finally {
-        isLoading.value = false
+    } catch (error) {
+        console.error(error)
     }
 }
-
-// 2. Data Loading
-async function loadData() {
-    isLoading.value = true
-    try {
-        // In a real app, this comes from the API. 
-        // Mapped strictly to user requirements if API differs, but assuming API matches or we adapt.
-        // Existing code used getAbsensiList. We will use it and trust it returns compatible data 
-        // or the component will render what it can.
-        attendanceList.value = await getAbsensiList()
-    } catch (e) {
-        toast.add({ title: 'Error', description: 'Gagal memuat jadwal', color: 'error' })
-    } finally {
-        isLoading.value = false
-    }
-}
-
-
 
 // 3. Camera Handling
-function openCameraModal() {
-    isCameraOpen.value = true
-    startCameraStream()
+async function openCameraModal() {
+    // Cek permission kamera hanya saat user KLIK tombol foto
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+        // Stop stream test, kita pakai di startCameraStream
+        stream.getTracks().forEach(track => track.stop())
+
+        isCameraOpen.value = true
+        startCameraStream()
+    } catch (err) {
+        toast.add({
+            title: 'Akses Kamera Ditolak',
+            description: 'Mohon izinkan akses kamera di pengaturan browser.',
+            color: 'error'
+        })
+    }
 }
 
 function startCameraStream() {
@@ -111,12 +114,11 @@ function startCameraStream() {
         if (navigator.mediaDevices?.getUserMedia) {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'user' }
+                    video: { facingMode: 'user', width: { ideal: 720 } } // Optimasi resolusi
                 })
                 if (videoEl.value) videoEl.value.srcObject = stream
             } catch (err) {
-                toast.add({ title: 'Error', description: 'Gagal akses kamera', color: 'error' })
-                isCameraOpen.value = false
+                console.error(err)
             }
         }
     })
@@ -133,66 +135,64 @@ function stopCameraStream() {
 function capturePhoto() {
     if (!videoEl.value || !canvasEl.value) return
 
-    const context = canvasEl.value.getContext('2d')
+    const context = canvasEl.value.getContext('2d', { alpha: false }) // Optimasi rendering
     canvasEl.value.width = videoEl.value.videoWidth
     canvasEl.value.height = videoEl.value.videoHeight
     context?.drawImage(videoEl.value, 0, 0)
 
     canvasEl.value.toBlob((blob) => {
         if (!blob) return
+        // Kompresi image (quality 0.7) untuk upload lebih cepat
         currentImageFile.value = new File([blob], "capture.jpg", { type: "image/jpeg" })
         currentImageUrl.value = URL.createObjectURL(blob)
         stopCameraStream()
-        isCameraOpen.value = false
-    }, 'image/jpeg', 0.8)
+    }, 'image/jpeg', 0.7)
 }
 
 // 4. Action / Submission
 async function handleSave(row: any) {
-    // Condition 1: Check validation
+    // Validasi Foto
     if (!currentImageFile.value) {
-        toast.add({ title: 'Foto Diperlukan', description: 'Please take a photo first', color: 'warning' })
+        toast.add({ title: 'Foto Diperlukan', description: 'Silakan ambil foto selfie terlebih dahulu.', color: 'warning' })
+        window.scrollTo({ top: 0, behavior: 'smooth' }) // Scroll ke atas biar user lihat kamera
         return
     }
 
-    // Condition 2: Upload & Submit
-    isLoading.value = true
+    // Validasi Lokasi (Cek ulang saat submit)
+    if (!locationCoords.value) {
+        toast.add({ title: 'Lokasi Diperlukan', description: 'Sedang mengambil lokasi, coba sesaat lagi...', color: 'info' })
+        // Coba minta lokasi lagi force
+        navigator.geolocation.getCurrentPosition(
+            (pos) => { locationCoords.value = `${pos.coords.latitude},${pos.coords.longitude}` },
+            () => toast.add({ title: 'Gagal', description: 'Pastikan GPS aktif.', color: 'error' })
+        )
+        return
+    }
+
+    // Submit Process
     try {
+        // Tampilkan loading di button baris tersebut (opsional, butuh state tambahan)
+        // Untuk sekarang kita pakai loading global atau toast
+        const loadingToast = toast.add({ title: 'Proses...', description: 'Mengupload data...', color: 'info', duration: 0 })
+
         // A. Upload S3
         const s3Url = await uploadToS3(currentImageFile.value)
 
         // B. Submit API
-        // Assuming row.id is the identifier as per requirements
         const result: any = await submitAbsen(row.id, s3Url, locationCoords.value)
 
+        toast.remove(loadingToast.id) // Hapus toast loading
+
         if (result == 1) {
-            toast.add({ title: 'Sukses', description: 'Absen Berhasil', color: 'success' })
-            // Reset & Refresh
+            toast.add({ title: 'Sukses', description: 'Absensi berhasil dicatat!', color: 'success' })
             currentImageFile.value = null
             currentImageUrl.value = null
+            refreshData() // Refresh data tabel
         } else {
-            toast.add({ title: 'Gagal', description: 'Absen Gagal', color: 'error' })
+            toast.add({ title: 'Gagal', description: 'Terjadi kesalahan saat submit.', color: 'error' })
         }
-
-        await loadData()
     } catch (e) {
-        toast.add({ title: 'Error', description: 'Terjadi kesalahan sistem', color: 'error' })
-    } finally {
-        isLoading.value = false
-    }
-}
-
-// Formatters
-const formatTime = (dateStr: string | null) => {
-    if (!dateStr) return '-'
-    try {
-        // Try parsing assuming ISO or standard format
-        const date = new Date(dateStr)
-        // If invalid date
-        if (isNaN(date.getTime())) return dateStr
-        return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-    } catch {
-        return dateStr
+        toast.add({ title: 'Error', description: 'Gagal menghubungi server.', color: 'error' })
     }
 }
 </script>
@@ -362,95 +362,60 @@ const formatTime = (dateStr: string | null) => {
         <!-- Camera Modal -->
         <!-- Custom Camera Modal Overlay -->
         <Teleport to="body">
-            <Transition name="camera-modal">
+            <Transition enter-active-class="transition-opacity duration-300 ease-out" enter-from-class="opacity-0"
+                enter-to-class="opacity-100" leave-active-class="transition-opacity duration-200 ease-in"
+                leave-from-class="opacity-100" leave-to-class="opacity-0">
                 <div v-if="isCameraOpen" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
                     <!-- Backdrop -->
                     <div class="absolute inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
                         @click="stopCameraStream">
                     </div>
 
-                    <!-- Modal Content (Card Style) -->
-                    <div
-                        class="camera-modal-content relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col ring-1 ring-white/20">
-
-                        <!-- Header -->
+                    <!-- Modal Content (Card Style) with enter animation -->
+                    <Transition appear
+                        enter-active-class="transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                        enter-from-class="opacity-0 scale-90 translate-y-5"
+                        enter-to-class="opacity-100 scale-100 translate-y-0"
+                        leave-active-class="transition-all duration-200 ease-in"
+                        leave-from-class="opacity-100 scale-100 translate-y-0"
+                        leave-to-class="opacity-0 scale-95 translate-y-2.5">
                         <div
-                            class="px-6 py-4 flex justify-between items-center border-b border-slate-100 bg-white z-10">
-                            <div>
-                                <h3 class="font-bold text-lg text-[#0F172A]">Ambil Foto</h3>
-                                <p class="text-xs text-[#64748B]">Pastikan wajah terlihat jelas</p>
-                            </div>
-                            <button @click="stopCameraStream"
-                                class="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors focus:outline-none">
-                                <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
-                            </button>
-                        </div>
+                            class="relative w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col ring-1 ring-white/20">
 
-                        <!-- Video Feed (Professional Ratio 3:4) -->
-                        <div class="relative bg-black w-full aspect-[3/4] overflow-hidden group">
-                            <video ref="videoEl" autoplay playsinline
-                                class="absolute inset-0 w-full h-full object-cover transform -scale-x-100"></video>
-                            <canvas ref="canvasEl" class="hidden"></canvas>
-                        </div>
-
-                        <!-- Controls (Footer) -->
-                        <div
-                            class="p-6 bg-white border-t border-slate-100 flex flex-col items-center justify-center gap-2">
-                            <button @click="capturePhoto"
-                                class="group relative w-16 h-16 rounded-full border-4 border-slate-200 p-1 transition-all hover:border-[#166534] hover:scale-105 active:scale-95 focus:outline-none">
-                                <div
-                                    class="w-full h-full bg-[#166534] rounded-full group-hover:bg-[#15803d] transition-colors relative z-10 shadow-inner">
+                            <!-- Header -->
+                            <div
+                                class="px-6 py-4 flex justify-between items-center border-b border-slate-100 bg-white z-10">
+                                <div>
+                                    <h3 class="font-bold text-lg text-[#0F172A]">Ambil Foto</h3>
+                                    <p class="text-xs text-[#64748B]">Pastikan wajah terlihat jelas</p>
                                 </div>
-                            </button>
+                                <button @click="stopCameraStream"
+                                    class="p-2 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors focus:outline-none">
+                                    <UIcon name="i-heroicons-x-mark" class="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <!-- Video Feed (Professional Ratio 3:4) -->
+                            <div class="relative bg-black w-full aspect-[3/4] overflow-hidden group">
+                                <video ref="videoEl" autoplay playsinline
+                                    class="absolute inset-0 w-full h-full object-cover transform -scale-x-100"></video>
+                                <canvas ref="canvasEl" class="hidden"></canvas>
+                            </div>
+
+                            <!-- Controls (Footer) -->
+                            <div
+                                class="p-6 bg-white border-t border-slate-100 flex flex-col items-center justify-center gap-2">
+                                <button @click="capturePhoto"
+                                    class="group relative w-16 h-16 rounded-full border-4 border-slate-200 p-1 transition-all hover:border-[#166534] hover:scale-105 active:scale-95 focus:outline-none">
+                                    <div
+                                        class="w-full h-full bg-[#166534] rounded-full group-hover:bg-[#15803d] transition-colors relative z-10 shadow-inner">
+                                    </div>
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    </Transition>
                 </div>
             </Transition>
         </Teleport>
     </div>
 </template>
-
-<style scoped>
-/* Custom Scrollbar for table if needed */
-.overflow-x-auto::-webkit-scrollbar {
-    height: 6px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 20px;
-}
-
-/* Camera Modal Transitions */
-.camera-modal-enter-active,
-.camera-modal-leave-active {
-    transition: opacity 0.3s ease;
-}
-
-.camera-modal-enter-from,
-.camera-modal-leave-to {
-    opacity: 0;
-}
-
-.camera-modal-enter-active .camera-modal-content {
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-}
-
-.camera-modal-leave-active .camera-modal-content {
-    transition: transform 0.2s ease-in, opacity 0.2s ease;
-}
-
-.camera-modal-enter-from .camera-modal-content {
-    transform: scale(0.90) translateY(20px);
-    opacity: 0;
-}
-
-.camera-modal-leave-to .camera-modal-content {
-    transform: scale(0.95) translateY(10px);
-    opacity: 0;
-}
-</style>

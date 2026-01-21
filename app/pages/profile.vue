@@ -1,4 +1,10 @@
 <script setup lang="ts">
+// Tambahkan SEO Meta
+useHead({
+    title: 'Profil Saya - Freelance LB',
+    meta: [{ name: 'description', content: 'Informasi profil dan data kepegawaian freelancer.' }]
+})
+
 definePageMeta({
     middleware: 'auth'
 })
@@ -7,24 +13,21 @@ const { logout } = useAuth()
 const { getEmployeeProfile } = useEmployee()
 const toast = useCustomToast()
 
-const isLoading = ref(false)
 const isLogoutLoading = ref(false)
-const profile = ref<any>(null)
 
-onMounted(async () => {
-    isLoading.value = true
-    try {
-        const data = await getEmployeeProfile()
-        if (data) {
-            profile.value = data
-        }
-    } catch (e) {
-        console.error('Failed to load profile', e)
-    } finally {
-        isLoading.value = false
+// --- SSR DATA FETCHING (FIX LCP) ---
+// Data diambil di server sebelum halaman dikirim ke browser
+const { data: profile, status } = await useAsyncData(
+    'employee-profile',
+    () => getEmployeeProfile(),
+    {
+        default: () => null // Mencegah error akses properti null
     }
-})
+)
 
+const isLoading = computed(() => status.value === 'pending')
+
+// --- Actions ---
 async function handleLogout() {
     isLogoutLoading.value = true
     try {
@@ -38,6 +41,7 @@ async function handleLogout() {
     }
 }
 
+// Helper Format Date
 function formatDate(date: string) {
     if (!date) return '-'
     return new Date(date).toLocaleDateString('id-ID', {
@@ -48,7 +52,6 @@ function formatDate(date: string) {
 
 <template>
     <div class="min-h-screen bg-[#F1F5F9] pb-24 text-[#334155]">
-        <!-- Page Header -->
         <div class="bg-white border-b border-slate-200 sticky top-0 z-20">
             <UContainer class="py-4">
                 <h1 class="text-xl font-bold text-[#0F172A]">Profil Saya</h1>
@@ -57,14 +60,12 @@ function formatDate(date: string) {
 
         <UContainer class="py-6 space-y-6">
 
-            <!-- Loading State -->
             <div v-if="isLoading" class="space-y-4">
                 <USkeleton class="h-32 w-full rounded-2xl" />
                 <USkeleton class="h-64 w-full rounded-2xl" />
             </div>
 
             <template v-else>
-                <!-- Profile Header Card -->
                 <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-[#0F172A] to-[#1e293b] z-0">
                     </div>
@@ -89,10 +90,8 @@ function formatDate(date: string) {
                     </div>
                 </div>
 
-                <!-- Info Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                    <!-- Personal Info -->
                     <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
                             <UIcon name="i-heroicons-identification" class="w-5 h-5 text-[#166534]" />
@@ -112,7 +111,13 @@ function formatDate(date: string) {
                             <div>
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Tanggal
                                     Lahir</label>
-                                <p class="text-[#0F172A] font-medium mt-1">{{ formatDate(profile?.tanggal_lahir) }}</p>
+                                <ClientOnly>
+                                    <p class="text-[#0F172A] font-medium mt-1">{{ formatDate(profile?.tanggal_lahir) }}
+                                    </p>
+                                    <template #fallback>
+                                        <div class="h-6 w-32 bg-slate-100 rounded animate-pulse"></div>
+                                    </template>
+                                </ClientOnly>
                             </div>
                             <div>
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Alamat</label>
@@ -122,7 +127,6 @@ function formatDate(date: string) {
                         </div>
                     </section>
 
-                    <!-- Employment Info -->
                     <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="px-6 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center gap-2">
                             <UIcon name="i-heroicons-briefcase" class="w-5 h-5 text-[#166534]" />
@@ -132,7 +136,13 @@ function formatDate(date: string) {
                             <div>
                                 <label class="text-xs font-bold text-slate-400 uppercase tracking-wide">Tanggal
                                     Bergabung</label>
-                                <p class="text-[#0F172A] font-medium mt-1">{{ formatDate(profile?.tanggal_masuk) }}</p>
+                                <ClientOnly>
+                                    <p class="text-[#0F172A] font-medium mt-1">{{ formatDate(profile?.tanggal_masuk) }}
+                                    </p>
+                                    <template #fallback>
+                                        <div class="h-6 w-32 bg-slate-100 rounded animate-pulse"></div>
+                                    </template>
+                                </ClientOnly>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
@@ -151,7 +161,6 @@ function formatDate(date: string) {
                     </section>
                 </div>
 
-                <!-- Action Button -->
                 <div class="pt-6">
                     <UButton block size="xl" color="error" variant="soft" :loading="isLogoutLoading"
                         @click="handleLogout" icon="i-heroicons-arrow-right-on-rectangle" class="font-bold">
