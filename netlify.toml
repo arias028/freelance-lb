@@ -1,28 +1,21 @@
 [build]
   command = "npm run build"
-  publish = "dist" 
-  # atau "output/public" jika menggunakan preset nitro yang berbeda
+  publish = "dist"
 
-# Paksa Header yang benar untuk file Manifest dan Service Worker
-[[headers]]
-  for = "/manifest.webmanifest"
-  [headers.values]
-    Content-Type = "application/manifest+json"
-
+# FIX: Force correct MIME types so 'nosniff' doesn't block them
 [[headers]]
   for = "/sw.js"
   [headers.values]
     Content-Type = "application/javascript"
 
 [[headers]]
-  for = "/*"
+  for = "/manifest.webmanifest"
   [headers.values]
-    # Cache Control agar user selalu dapat versi terbaru secepatnya
-    # Browser akan cache file static (JS/CSS) karena nama filenya ada hash-nya (immutable)
-    Cache-Control = "public, max-age=0, must-revalidate"
+    Content-Type = "application/manifest+json"
 
 [[headers]]
-  for = "/_nuxt/*"
+  for = "/*"
   [headers.values]
-    # File JS/CSS hasil build boleh di-cache selamanya (1 tahun)
-    Cache-Control = "public, max-age=31536000, immutable"
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
