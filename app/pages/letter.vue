@@ -23,9 +23,9 @@ definePageMeta({
 
             <div class="max-w-md space-y-2">
                 <h2 class="text-2xl font-bold text-[#0F172A]">Fitur Sedang Dikembangkan</h2>
-                <p class="text-slate-500 text-lg leading-relaxed">
+                <!-- <p class="text-slate-500 text-lg leading-relaxed">
                     Modul permohonan surat izin dan cuti akan segera tersedia dalam update berikutnya.
-                </p>
+                </p> -->
             </div>
 
             <div class="pt-6">
