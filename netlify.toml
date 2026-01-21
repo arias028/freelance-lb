@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "pnpm run build"
   publish = "dist"
 
 # FIX: Force correct MIME types so 'nosniff' doesn't block them

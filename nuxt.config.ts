@@ -103,7 +103,8 @@ export default defineNuxtConfig({
 
   pwa: {
     // ... konfigurasi pwa Anda ...
-    filename: 'manifest.webmanifest',
+    // filename: 'manifest.webmanifest',
+    filename: 'sw.js',
     registerType: 'autoUpdate',
     manifest: {
       name: 'Freelance LB',
