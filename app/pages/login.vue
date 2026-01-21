@@ -41,38 +41,36 @@ function generateCaptcha() {
 
 function drawCaptcha(text: string) {
     if (!captchaCanvas.value) return
-    const ctx = captchaCanvas.value.getContext('2d', { alpha: false }) // Optimasi: alpha false jika background solid
+    const ctx = captchaCanvas.value.getContext('2d')
     if (!ctx) return
 
-    // FIX FORCED REFLOW: Ambil dimensi sekali saja di awal
-    const width = captchaCanvas.value.width
-    const height = captchaCanvas.value.height
-
     // Clear and set background
-    ctx.clearRect(0, 0, width, height)
-    ctx.fillStyle = '#f8fafc'
-    ctx.fillRect(0, 0, width, height)
+    ctx.clearRect(0, 0, captchaCanvas.value.width, captchaCanvas.value.height)
+    ctx.fillStyle = '#f8fafc' // slate-50
+    ctx.fillRect(0, 0, captchaCanvas.value.width, captchaCanvas.value.height)
 
-    // Add noise (Gunakan variabel width/height yang sudah di-cache)
+    // Add noise (random lines)
     for (let i = 0; i < 7; i++) {
         ctx.strokeStyle = `rgba(100, 116, 139, ${Math.random() * 0.5})`
         ctx.beginPath()
-        ctx.moveTo(Math.random() * width, Math.random() * height)
-        ctx.lineTo(Math.random() * width, Math.random() * height)
+        ctx.moveTo(Math.random() * captchaCanvas.value.width, Math.random() * captchaCanvas.value.height)
+        ctx.lineTo(Math.random() * captchaCanvas.value.width, Math.random() * captchaCanvas.value.height)
         ctx.stroke()
     }
 
     // Draw Text
     ctx.font = 'bold 24px sans-serif'
-    ctx.fillStyle = '#334155'
+    ctx.fillStyle = '#334155' // slate-700
     ctx.textBaseline = 'middle'
 
+    const width = captchaCanvas.value.width
     const step = width / 4
 
     for (let i = 0; i < text.length; i++) {
         ctx.save()
+        // Random position and rotation for each character
         const x = step * (i + 1) - 10
-        const y = height / 2 + (Math.random() - 0.5) * 10
+        const y = captchaCanvas.value.height / 2 + (Math.random() - 0.5) * 10
         const angle = (Math.random() - 0.5) * 0.4
 
         ctx.translate(x, y)
@@ -83,23 +81,8 @@ function drawCaptcha(text: string) {
 }
 
 onMounted(() => {
+    generateCaptcha()
     setupInstallPrompt()
-
-    // Tunggu sampai browser "nganggur" baru generate captcha
-    // Ini drastis mengurangi TBT (Total Blocking Time)
-    setTimeout(() => {
-        generateCaptcha()
-    }, 100)
-})
-
-useHead({
-    title: 'Login - Freelance LB',
-    meta: [
-        { name: 'description', content: 'Halaman login untuk dashboard Freelance LB' }
-    ],
-    htmlAttrs: {
-        lang: 'id'
-    }
 })
 
 async function handleLogin() {
@@ -156,15 +139,14 @@ async function handleInstall() {
         Input Text: #334155 (Slate Grey)
         Headings/Labels: #0F172A (Midnight Navy)
     -->
-    <main
+    <div
         class="login-card w-full bg-white rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-[#E2E8F0] overflow-hidden">
 
         <!-- Header Section -->
         <div class="px-8 pt-10 pb-8 text-center">
             <div
                 class="inline-flex items-center justify-center w-24 h-24 rounded-2xl bg-white mb-6 shadow-lg shadow-slate-200/50 transform transition-transform duration-300 overflow-hidden border border-[#E2E8F0]">
-                <NuxtImg src="pwa-192x192.png" alt="Logo Konstruksi" class="w-20 h-20" loading="eager"
-                    fetchpriority="high" />
+                <NuxtImg src="pwa-192x192.png" alt="Logo Konstruksi" class="w-20 h-20" loading="lazy" />
             </div>
 
             <!-- Heading: Midnight Navy #0F172A -->
@@ -191,7 +173,7 @@ async function handleInstall() {
                         </div>
                         <!-- Input: min-height 48px, 16px text, border #CBD5E1, focus border #166534 -->
                         <input v-model="form.kode_user" type="text"
-                            class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-colors duration-200"
+                            class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-all duration-200"
                             placeholder="Contoh: FRL0001" autofocus />
                     </div>
                 </div>
@@ -205,10 +187,9 @@ async function handleInstall() {
                                 class="h-5 w-5 text-[#94A3B8] group-focus-within:text-[#166534] transition-colors duration-200" />
                         </div>
                         <input v-model="form.password" :type="showPassword ? 'text' : 'password'"
-                            class="login-input block w-full min-h-[48px] pl-12 pr-12 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-colors duration-200"
+                            class="login-input block w-full min-h-[48px] pl-12 pr-12 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-all duration-200"
                             placeholder="••••••••" />
                         <button type="button" @click="showPassword = !showPassword"
-                            :aria-label="showPassword ? 'Sembunyikan password' : 'Tampilkan password'"
                             class="absolute inset-y-0 right-0 pr-4 flex items-center text-[#64748B] hover:text-[#0F172A] focus:outline-none transition-colors duration-200">
                             <Eye v-if="!showPassword" class="h-5 w-5" />
                             <EyeOff v-else class="h-5 w-5" />
@@ -226,34 +207,26 @@ async function handleInstall() {
                                     class="h-5 w-5 text-[#94A3B8] group-focus-within:text-[#166534] transition-colors duration-200" />
                             </div>
                             <input v-model="captchaInput" type="text" maxlength="3"
-                                class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-colors duration-200 uppercase tracking-widest font-bold"
+                                class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-all duration-200 uppercase tracking-widest font-bold"
                                 placeholder="ABC" />
                         </div>
 
-                        <ClientOnly>
-                            <div class="relative cursor-pointer group flex-shrink-0" @click="generateCaptcha"
-                                title="Klik untuk ganti kode">
-                                <canvas ref="captchaCanvas" width="110" height="52"
-                                    class="rounded-xl border-2 border-[#CBD5E1] bg-[#F8FAFC] cursor-pointer hover:border-[#166534] transition-colors block"></canvas>
-                                <div
-                                    class="absolute -right-2 -top-2 bg-white rounded-full p-1.5 shadow-sm border border-[#CBD5E1] opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-110">
-                                    <RefreshCw class="w-4 h-4 text-[#166534]" />
-                                </div>
+                        <div class="relative cursor-pointer group flex-shrink-0" @click="generateCaptcha"
+                            title="Klik untuk ganti kode">
+                            <canvas ref="captchaCanvas" width="110" height="52"
+                                class="rounded-xl border-2 border-[#CBD5E1] bg-[#F8FAFC] cursor-pointer hover:border-[#166534] transition-colors block"></canvas>
+                            <div
+                                class="absolute -right-2 -top-2 bg-white rounded-full p-1.5 shadow-sm border border-[#CBD5E1] opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-110">
+                                <RefreshCw class="w-4 h-4 text-[#166534]" />
                             </div>
-
-                            <template #fallback>
-                                <div
-                                    class="w-[110px] h-[52px] bg-slate-100 rounded-xl border-2 border-slate-200 animate-pulse">
-                                </div>
-                            </template>
-                        </ClientOnly>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Login Button: min-height 50px, Midnight Navy #0F172A bg, white text -->
                 <div class="pt-4">
                     <button type="submit" :disabled="isLoading"
-                        class="login-btn w-full flex items-center justify-center gap-3 min-h-[50px] py-3.5 px-6 border-0 rounded-xl text-base font-bold text-white bg-[#0F172A] hover:bg-[#1E293B] focus:outline-none focus:ring-4 focus:ring-[#0F172A]/30 shadow-lg shadow-[#0F172A]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200 active:scale-[0.98]">
+                        class="login-btn w-full flex items-center justify-center gap-3 min-h-[50px] py-3.5 px-6 border-0 rounded-xl text-base font-bold text-white bg-[#0F172A] hover:bg-[#1E293B] focus:outline-none focus:ring-4 focus:ring-[#0F172A]/30 shadow-lg shadow-[#0F172A]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]">
                         <Loader2 v-if="isLoading" class="animate-spin h-5 w-5" />
                         <span v-else>Masuk Dashboard</span>
                         <ArrowRight v-if="!isLoading" class="h-5 w-5" />
@@ -300,5 +273,5 @@ async function handleInstall() {
             </div>
         </div>
 
-    </main>
+    </div>
 </template>
