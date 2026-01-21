@@ -16,6 +16,7 @@ const toast = useCustomToast()
 const locationCoords = ref<string>('')
 const dateString = ref('')
 const hasPermissions = ref(false)
+const checkingPermissions = ref(true) // Track loading state for permission check
 const permissionErrorMessage = ref('')
 
 // Camera State
@@ -52,41 +53,76 @@ onMounted(() => {
 
 // --- Methods ---
 
-// 2. Permission Check (Non-Blocking Flow)
+// 2. Permission Check - PROPERLY TRIGGERS PROMPTS ON MOBILE
 async function requestAllPermissions() {
     permissionErrorMessage.value = ''
+    checkingPermissions.value = true
 
     // Cek apakah browser support
     if (!navigator.geolocation || !navigator.mediaDevices?.getUserMedia) {
         permissionErrorMessage.value = 'Browser tidak mendukung Geolocation atau Kamera.'
+        checkingPermissions.value = false
         return
     }
 
+    let locationGranted = false
+    let cameraGranted = false
+
     try {
-        // A. Request Location (Background)
-        navigator.geolocation.getCurrentPosition(
-            (pos) => {
-                locationCoords.value = `${pos.coords.latitude},${pos.coords.longitude}`
-                hasPermissions.value = true // Lokasi dapat, kita anggap aman dulu
-            },
-            (err) => {
-                console.warn('Lokasi ditolak:', err)
-                // Jangan blokir UI, cukup beri notifikasi visual nanti saat mau absen
-                permissionErrorMessage.value = 'Akses lokasi diperlukan untuk validasi absen.'
-            }
-        )
+        // === A. Request LOCATION Permission ===
+        // Wrap getCurrentPosition in Promise for proper async handling on mobile
+        locationGranted = await new Promise<boolean>((resolve) => {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                    locationCoords.value = `${pos.coords.latitude},${pos.coords.longitude}`
+                    console.log('Location granted:', locationCoords.value)
+                    resolve(true)
+                },
+                (err) => {
+                    console.warn('Location denied:', err.code, err.message)
+                    resolve(false)
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000, // 15 seconds timeout for mobile GPS
+                    maximumAge: 60000 // Cache for 1 minute
+                }
+            )
+        })
 
-        // B. Camera Check (Kita tidak minta stream sekarang agar tidak berat)
-        // Kita hanya cek ketersediaan API. Stream diminta saat tombol kamera ditekan.
-        const devices = await navigator.mediaDevices.enumerateDevices()
-        const hasCamera = devices.some(device => device.kind === 'videoinput')
+        // === B. Request CAMERA Permission ===
+        // On mobile, enumerateDevices() does NOT trigger permission prompt!
+        // We MUST call getUserMedia() to trigger the permission dialog
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user' }
+            })
+            // Immediately stop the stream, we just needed the permission
+            stream.getTracks().forEach(track => track.stop())
+            cameraGranted = true
+            console.log('Camera permission granted')
+        } catch (camErr: any) {
+            console.warn('Camera permission denied:', camErr.name, camErr.message)
+            cameraGranted = false
+        }
 
-        if (!hasCamera) {
-            permissionErrorMessage.value = 'Kamera tidak terdeteksi.'
+        // === Set final permission state ===
+        if (locationGranted && cameraGranted) {
+            hasPermissions.value = true
+            permissionErrorMessage.value = ''
+        } else if (!locationGranted && !cameraGranted) {
+            permissionErrorMessage.value = 'Izinkan akses Lokasi dan Kamera untuk melakukan absensi.'
+        } else if (!locationGranted) {
+            permissionErrorMessage.value = 'Izinkan akses Lokasi untuk validasi absensi.'
+        } else if (!cameraGranted) {
+            permissionErrorMessage.value = 'Izinkan akses Kamera untuk foto absensi.'
         }
 
     } catch (error) {
-        console.error(error)
+        console.error('Permission check error:', error)
+        permissionErrorMessage.value = 'Terjadi kesalahan saat memeriksa izin akses.'
+    } finally {
+        checkingPermissions.value = false
     }
 }
 
@@ -212,8 +248,8 @@ async function handleSave(row: any) {
                 </div>
             </div>
 
-            <!-- Permission Error State -->
-            <div v-if="!hasPermissions && !isLoading && permissionErrorMessage"
+            <!-- Permission Error State (Show only AFTER checking is complete) -->
+            <div v-if="!checkingPermissions && !hasPermissions && permissionErrorMessage"
                 class="flex flex-col items-center justify-center py-20 text-center space-y-6 animate-in slide-in-from-bottom-4 fade-in duration-500">
                 <div class="p-6 bg-red-50 rounded-full ring-1 ring-red-100">
                     <UIcon name="i-heroicons-shield-exclamation" class="w-16 h-16 text-red-600" />
@@ -352,9 +388,11 @@ async function handleSave(row: any) {
                     </div>
                 </section>
             </template>
-            <div v-else class="py-20 text-center text-slate-400">
+            <!-- Loading State: Checking Permissions -->
+            <div v-else-if="checkingPermissions" class="py-20 text-center text-slate-400">
                 <UIcon name="i-heroicons-arrow-path" class="w-10 h-10 animate-spin mx-auto mb-4" />
                 <p>Memeriksa Izin Akses...</p>
+                <p class="text-xs mt-2 text-slate-400">Mohon izinkan akses lokasi dan kamera</p>
             </div>
         </UContainer>
 
