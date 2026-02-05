@@ -85,9 +85,7 @@ const todayStatus = computed(() => {
               <p class="text-[#334155] font-semibold text-lg">{{ dateString }}</p>
             </ClientOnly>
           </div>
-
         </div>
-
       </div>
     </UContainer>
   </div>
