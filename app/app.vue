@@ -50,10 +50,10 @@ onMounted(() => {
     const token = useCookie('auth_token')
 
     if (token.value && user.value?.id) {
-      $fetch(`${config.public.apiBase}/FreelanceCheckSession`, {
+      // Use internal proxy - no headerKey/apiKey needed (handled server-side)
+      $fetch(`/api/freelance/FreelanceCheckSession`, {
         method: 'POST',
         headers: {
-          [config.public.headerKey]: config.public.apiKey,
           'Authorization': `Bearer ${token.value}`
         },
         body: { id_freelance: user.value.id }

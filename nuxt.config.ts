@@ -181,12 +181,12 @@ export default defineNuxtConfig({
     awsSecretAccessKey: process.env.AWS_LASKARBUAH_HRD_SECRET_ACCESS_KEY,
     awsRegion: process.env.AWS_LASKARBUAH_HRD_REGION,
     awsBucket: process.env.AWS_LASKARBUAH_HRD_BUCKET,
+    headerKey: process.env.HEADER_KEY,
+    apiKey: process.env.API_KEY,
     public: {
       siteName: 'Freelance Laskarbuah',
       appId: process.env.NUXT_PUBLIC_APP_ID || '16',
-      apiBase: process.env.NUXT_PUBLIC_API_BASE,
-      headerKey: process.env.NUXT_PUBLIC_HEADER_KEY,
-      apiKey: process.env.NUXT_PUBLIC_API_KEY
+      apiBase: process.env.NUXT_PUBLIC_API_BASE
     }
   },
 

@@ -3,13 +3,12 @@ export const useEmployee = () => {
     const { user } = useAuth()
     const config = useRuntimeConfig()
 
-    // Wrapper untuk panggil API C# dengan Header yang benar (Default Controller: FreelanceAbsensi)
+    // Wrapper untuk panggil API via internal proxy (headerKey/apiKey handled server-side)
     const fetchApi = async (endpoint: string, options: any = {}, controller = 'FreelanceAbsensi') => {
         const token = useCookie('auth_token')
-        return await $fetch(`${config.public.apiBase}/${controller}/${endpoint}`, {
+        return await $fetch(`/api/freelance/${controller}/${endpoint}`, {
             ...options,
             headers: {
-                [config.public.headerKey]: config.public.apiKey,
                 'Authorization': `Bearer ${token.value}`,
                 ...options.headers
             }
@@ -73,5 +72,25 @@ export const useEmployee = () => {
         return response.success ? response.data : null
     }
 
-    return { getAbsensiList, uploadToS3, submitAbsen, getEmployeeProfile, getDetailPayroll }
+    // 6. Get List Surat (Riwayat Surat: SP, Tugas, dll)
+    const getSuratList = async () => {
+        if (!user.value?.id) return []
+        const response: any = await fetchApi('GetList', {
+            query: { id_freelance: user.value.id }
+        }, 'FreelanceSurat')
+        if (Array.isArray(response)) return response
+        return response.success ? response.data : []
+    }
+
+    // 7. Get Detail Surat (Untuk View / Cetak)
+    const getSuratDetail = async (idSurat: number) => {
+        const response: any = await fetchApi('GetDetail', {
+            query: { id_surat: idSurat }
+        }, 'FreelanceSurat')
+        // Return raw response - could be array or object with success/data
+        if (Array.isArray(response)) return response
+        return response.success ? response.data : response
+    }
+
+    return { getAbsensiList, uploadToS3, submitAbsen, getEmployeeProfile, getDetailPayroll, getSuratList, getSuratDetail }
 }

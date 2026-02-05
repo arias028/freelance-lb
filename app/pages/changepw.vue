@@ -73,12 +73,11 @@ async function handleChangePassword() {
         // Dapatkan IP client
         const clientIP = await getClientIP()
 
-        // Panggil API change password
-        const response = await $fetch<number>(`${config.public.apiBase}/FreelanceChangePassword`, {
+        // Panggil API change password via internal proxy
+        const response = await $fetch<number>(`/api/freelance/FreelanceChangePassword`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                [config.public.headerKey]: config.public.apiKey
+                'Content-Type': 'application/json'
             },
             body: {
                 kode_user: form.kode_user,

@@ -44,13 +44,13 @@ export const useAuth = () => {
     }
 
     try {
-      const apiEndpoint = `${config.public.apiBase}/FreelanceLogin`
+      // Use internal proxy - no headerKey/apiKey needed (handled server-side)
+      const apiEndpoint = `/api/freelance/FreelanceLogin`
 
       const response = await $fetch<any>(apiEndpoint, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          [config.public.headerKey]: config.public.apiKey
+          'Content-Type': 'application/json'
         },
         body: payload
       })
@@ -84,12 +84,12 @@ export const useAuth = () => {
   const logout = async () => {
     if (user.value?.id && token.value) {
       try {
-        const apiEndpoint = `${config.public.apiBase}/FreelanceLogout`
+        // Use internal proxy - no headerKey/apiKey needed (handled server-side)
+        const apiEndpoint = `/api/freelance/FreelanceLogout`
         await $fetch(apiEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            [config.public.headerKey]: config.public.apiKey,
             'Authorization': `Bearer ${token.value}`
           },
           body: {
