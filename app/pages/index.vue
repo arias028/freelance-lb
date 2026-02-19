@@ -74,7 +74,6 @@ const todayStatus = computed(() => {
               Semoga harimu menyenangkan. Jangan lupa untuk melakukan absensi hari ini.
             </p>
           </div>
-
           <div class="text-right hidden md:block">
             <ClientOnly>
               <template #fallback>
