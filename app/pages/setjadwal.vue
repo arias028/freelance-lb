@@ -67,7 +67,7 @@ const selectedOptionLabel = computed(() => typeOptions.find(o => o.value === for
 const selectedFreelanceLabel = computed(() => {
     if (!form.value.id_freelance) return 'Pilih anggota tim'
     const member = teamList.value.find(f => f.id === form.value.id_freelance)
-    return member ? member.nama_lengkap : 'Pilih anggota tim'
+    return member ? member.username : 'Pilih anggota tim'
 })
 const selectedShiftLabel = computed(() => {
     const shift = form.value.selectedShift
@@ -337,7 +337,7 @@ const executeDelete = async () => {
                                                     @click="selectFreelance(member.id)"
                                                     class="w-full px-4 py-3 flex items-center justify-between gap-3 transition-colors duration-200"
                                                     :class="[form.id_freelance === member.id ? 'bg-[#166534]/10 text-[#166534] font-semibold' : 'text-[#334155] hover:bg-slate-50']">
-                                                    <span>{{ member.nama_lengkap }}</span>
+                                                    <span>{{ member.username }}</span>
                                                     <div v-if="form.id_freelance === member.id"
                                                         class="p-1 bg-[#166534] rounded-full"></div>
                                                 </button>
