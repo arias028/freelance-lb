@@ -9,8 +9,9 @@ useHead({
 
 definePageMeta({ middleware: 'auth' })
 
-const { getFreelanceTeam, getShiftList, getJadwalHariIni, setJadwal, deleteJadwal } = useEmployee()
+const { getFreelanceTeam, getShiftList, getJadwalHariIni, setJadwal, deleteJadwal, getFreelanceMenu } = useEmployee()
 const { user } = useAuth()
+const route = useRoute()
 const toast = useCustomToast()
 
 // States
@@ -22,6 +23,8 @@ const isLoadingShifts = ref(false)
 const isLoadingJadwal = ref(false)
 const isSubmitting = ref(false)
 const isDeleting = ref<number | null>(null) // Track ID jadwal yang sedang didelete
+const isDeleteDialogOpen = ref(false)
+const scheduleToDelete = ref<number | null>(null)
 
 // Form States
 const form = ref({
@@ -77,6 +80,25 @@ const selectedShiftLabel = computed(() => {
 
 // Default to today
 onMounted(async () => {
+    // 1. Verify Access Permission
+    try {
+        const menus = await getFreelanceMenu()
+        const currentPath = route.path.replace(/^\//, '').toLowerCase() // misal "setjadwal"
+
+        const hasAccess = menus.some((menu: any) => {
+            const menuUrl = (menu.url_menu || '').replace(/^\//, '').toLowerCase()
+            return menuUrl === currentPath
+        })
+
+        if (!hasAccess && menus.length > 0) {
+            toast.add({ title: 'Akses Ditolak', description: 'Anda tidak memiliki akses ke halaman ini.', color: 'error' })
+            return navigateTo('/')
+        }
+    } catch (e) {
+        console.error('Failed to verify access', e)
+    }
+
+    // 2. Load Form Data
     form.value.tgl = new Date().toISOString().split('T')[0] || ''
     await loadInitialData()
 
@@ -149,7 +171,12 @@ const loadShifts = async () => {
 const formatTableDate = (dtStr: string) => {
     if (!dtStr) return '-'
     const d = new Date(dtStr)
-    return d.toLocaleString('id-ID', { year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+    const day = String(d.getDate()).padStart(2, '0')
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const year = d.getFullYear()
+    const hours = String(d.getHours()).padStart(2, '0')
+    const minutes = String(d.getMinutes()).padStart(2, '0')
+    return `${day}-${month}-${year} ${hours}:${minutes}`
 }
 
 const submitForm = async () => {
@@ -197,8 +224,20 @@ const refreshJadwal = async () => {
     }
 }
 
-const handleDelete = async (id_jadwal: number) => {
-    if (!confirm('Apakah Yakin Ingin Menghapus Jadwal Ini?')) return
+const confirmDelete = (id_jadwal: number) => {
+    scheduleToDelete.value = id_jadwal
+    isDeleteDialogOpen.value = true
+}
+
+const cancelDelete = () => {
+    isDeleteDialogOpen.value = false
+    scheduleToDelete.value = null
+}
+
+const executeDelete = async () => {
+    if (scheduleToDelete.value === null) return
+    const id_jadwal = scheduleToDelete.value
+    isDeleteDialogOpen.value = false
     isDeleting.value = id_jadwal
     try {
         const usrId = user.value?.id || 0
@@ -214,6 +253,7 @@ const handleDelete = async (id_jadwal: number) => {
         console.error(e)
     } finally {
         isDeleting.value = null
+        scheduleToDelete.value = null
     }
 }
 </script>
@@ -452,27 +492,20 @@ const handleDelete = async (id_jadwal: number) => {
                 <div class="lg:col-span-2">
                     <section
                         class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-full flex flex-col">
-                        <div
-                            class="px-6 py-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white">
-                            <div>
-                                <h2 class="font-bold text-[#0F172A] text-lg">Jadwal Aktif Hari Ini</h2>
-                                <p class="text-xs text-slate-500 mt-1">Daftar anggota tim yang dijadwalkan hari ini.</p>
-                            </div>
-                            <UButton color="neutral" variant="solid" :loading="isLoadingJadwal" @click="refreshJadwal"
-                                icon="i-heroicons-arrow-path" size="sm" class="shadow-sm">
-                                Refresh
-                            </UButton>
+                        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
+                            <h2 class="font-bold text-[#0F172A] text-lg">Jadwal Aktif Hari Ini</h2>
+                            <p class="text-xs text-slate-500 mt-1">Daftar anggota tim yang dijadwalkan hari ini.</p>
                         </div>
 
                         <div class="overflow-x-auto flex-1">
                             <table class="w-full text-left border-collapse text-sm">
                                 <thead class="bg-slate-50/50 text-[#0F172A] font-bold border-b border-slate-200">
                                     <tr>
+                                        <th class="p-4 text-center whitespace-nowrap w-16">Aksi</th>
                                         <th class="p-4 whitespace-nowrap">Anggota Tim</th>
                                         <th class="p-4 whitespace-nowrap">Shift</th>
                                         <th class="p-4 whitespace-nowrap">Jam Kerja</th>
                                         <th class="p-4 text-center whitespace-nowrap">Jenis</th>
-                                        <th class="p-4 text-right whitespace-nowrap">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-100">
@@ -496,52 +529,42 @@ const handleDelete = async (id_jadwal: number) => {
                                     </tr>
                                     <tr v-for="row in jadwalHariIni" :key="row.id"
                                         class="hover:bg-slate-50/80 transition-colors">
-                                        <!-- Column 1: Anggota -->
+                                        <!-- Column 1: Aksi -->
+                                        <td class="p-4 text-center whitespace-nowrap">
+                                            <button type="button" :disabled="isDeleting === row.id"
+                                                @click="confirmDelete(row.id)"
+                                                class="p-2 inline-flex justify-center items-center rounded-lg transition-colors focus:outline-none"
+                                                :class="isDeleting === row.id ? 'text-red-400 cursor-not-allowed' : 'text-slate-400 hover:text-red-600 hover:bg-red-50'">
+                                                <UIcon v-if="isDeleting === row.id" name="i-heroicons-arrow-path"
+                                                    class="w-5 h-5 animate-spin" />
+                                                <UIcon v-else name="i-heroicons-trash" class="w-5 h-5" />
+                                            </button>
+                                        </td>
+
+                                        <!-- Column 2: Anggota -->
                                         <td class="p-4">
-                                            <div class="flex items-center gap-3">
-                                                <div
-                                                    class="w-10 h-10 rounded-full bg-[#166534] flex items-center justify-center text-white font-bold flex-shrink-0">
-                                                    {{ row.nama_lengkap ? row.nama_lengkap.charAt(0) : 'U' }}
-                                                </div>
-                                                <div class="font-bold text-[#0F172A] whitespace-nowrap">
-                                                    {{ row.nama_lengkap }}
-                                                </div>
+                                            <div class="font-bold text-[#0F172A] whitespace-nowrap">
+                                                {{ row.nama_lengkap }}
                                             </div>
                                         </td>
 
-                                        <!-- Column 2: Shift -->
+                                        <!-- Column 3: Shift -->
                                         <td class="p-4 font-bold text-slate-700 whitespace-nowrap">
                                             {{ row.shift }}
                                         </td>
 
-                                        <!-- Column 3: Jam -->
-                                        <td class="p-4 whitespace-nowrap">
-                                            <div class="flex flex-col">
-                                                <div class="text-xs text-slate-500">Mulai: <span
-                                                        class="text-[#0F172A] font-mono">{{
-                                                            formatTableDate(row.start_date) }}</span></div>
-                                                <div class="text-xs text-slate-500 mt-1">Akhir: <span
-                                                        class="text-[#0F172A] font-mono">{{
-                                                            formatTableDate(row.end_date) }}</span>
-                                                </div>
-                                            </div>
+                                        <!-- Column 4: Jam -->
+                                        <td class="p-4 whitespace-nowrap text-[#0F172A] font-mono text-sm">
+                                            {{ formatTableDate(row.start_date) }} - {{ formatTableDate(row.end_date) }}
                                         </td>
 
-                                        <!-- Column 4: Jenis -->
+                                        <!-- Column 5: Jenis -->
                                         <td class="p-4 text-center whitespace-nowrap">
-                                            <UBadge :color="row.is_lembur === 'true' ? 'warning' : 'primary'"
-                                                variant="subtle" size="sm">
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold"
+                                                :class="row.is_lembur === 'true' ? 'bg-amber-100 text-amber-800' : 'bg-[#166534]/10 text-[#166534]'">
                                                 {{ row.is_lembur === 'true' ? 'Lembur' : 'Normal' }}
-                                            </UBadge>
-                                        </td>
-
-                                        <!-- Column 5: Aksi -->
-                                        <td class="p-4 text-right whitespace-nowrap">
-                                            <UButton :color="isDeleting === row.id ? 'error' : 'neutral'"
-                                                variant="ghost" size="sm" icon="i-heroicons-trash"
-                                                :loading="isDeleting === row.id" @click="handleDelete(row.id)"
-                                                class="hover:bg-red-50 hover:text-red-600 transition-colors">
-                                            </UButton>
+                                            </span>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -551,5 +574,50 @@ const handleDelete = async (id_jadwal: number) => {
                 </div>
             </div>
         </UContainer>
+
+        <!-- Delete Confirmation Modal -->
+        <Transition enter-active-class="transition duration-300 ease-out" enter-from-class="opacity-0"
+            enter-to-class="opacity-100" leave-active-class="transition duration-200 ease-in"
+            leave-from-class="opacity-100" leave-to-class="opacity-0">
+            <div v-if="isDeleteDialogOpen" class="fixed inset-0 z-[100] flex items-center justify-center">
+                <!-- Backdrop -->
+                <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="cancelDelete"></div>
+
+                <!-- Modal Box -->
+                <Transition enter-active-class="transition duration-300 ease-out"
+                    enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                    enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+                    leave-active-class="transition duration-200 ease-in"
+                    leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+                    leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+
+                    <div v-if="isDeleteDialogOpen"
+                        class="relative bg-white rounded-2xl shadow-xl border border-slate-100 w-full max-w-sm mx-4 overflow-hidden">
+                        <div class="p-6 text-center">
+                            <div
+                                class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 ring-8 ring-red-50/50">
+                                <UIcon name="i-heroicons-exclamation-triangle" class="w-8 h-8 text-red-500" />
+                            </div>
+                            <h3 class="text-lg font-bold text-[#0F172A] mb-2">Hapus Jadwal</h3>
+                            <p class="text-sm text-slate-500 mb-6 flex flex-col items-center">
+                                <span>Apakah Anda yakin ingin menghapus jadwal ini?</span>
+                                <span>Tindakan ini tidak dapat dibatalkan.</span>
+                            </p>
+
+                            <div class="flex flex-col sm:flex-row gap-3">
+                                <button type="button" @click="cancelDelete"
+                                    class="flex-1 min-h-[44px] px-4 rounded-xl font-bold bg-slate-100 text-[#334155] hover:bg-slate-200 focus:ring-4 focus:ring-slate-100 active:scale-[0.98] transition-all outline-none">
+                                    Batal
+                                </button>
+                                <button type="button" @click="executeDelete"
+                                    class="flex-1 min-h-[44px] px-4 rounded-xl font-bold bg-red-600 text-white hover:bg-red-700 focus:ring-4 focus:ring-red-600/20 active:scale-[0.98] transition-all outline-none">
+                                    Ya, Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </Transition>
+            </div>
+        </Transition>
     </div>
 </template>
