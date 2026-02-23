@@ -483,26 +483,28 @@ const printSurat = async (suratId: number) => {
                             </div>
 
                             <table class="w-full ml-4 mb-4 font-bold text-sm">
-                                <tr>
-                                    <td class="w-32">Nama</td>
-                                    <td class="w-4">:</td>
-                                    <td>{{ selectedSurat.nama_lengkap }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Jabatan Lama</td>
-                                    <td>:</td>
-                                    <td>{{ selectedSurat.name_jabatan_from }}</td>
-                                </tr>
-                                <tr>
-                                    <td>Jabatan Baru</td>
-                                    <td>:</td>
-                                    <td>{{ selectedSurat.name_jabatan_to }}</td>
-                                </tr>
+                                <tbody>
+                                    <tr>
+                                        <td class="w-32">Nama</td>
+                                        <td class="w-4">:</td>
+                                        <td>{{ selectedSurat.nama_lengkap }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Jabatan Lama</td>
+                                        <td>:</td>
+                                        <td>{{ selectedSurat.name_jabatan_from }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Jabatan Baru</td>
+                                        <td>:</td>
+                                        <td>{{ selectedSurat.name_jabatan_to }}</td>
+                                    </tr>
+                                </tbody>
                             </table>
 
                             <div class="text-justify mb-4 leading-relaxed">
                                 <span class="underline">Promosi jabatan ini berlaku efektif mulai tanggal <strong>{{
-                                        formatDate(selectedSurat.date_from) }}</strong>.</span>
+                                    formatDate(selectedSurat.date_from) }}</strong>.</span>
                                 Dengan jabatan baru tersebut, Bapak/Ibu diharapkan dapat menjalankan tanggung jawab
                                 dengan penuh komitmen
                                 serta terus memberikan kontribusi terbaik bagi kemajuan perusahaan.

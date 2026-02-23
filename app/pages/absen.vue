@@ -69,9 +69,8 @@ async function requestAllPermissions() {
     let cameraGranted = false
 
     try {
-        // === A. Request LOCATION Permission ===
-        // Wrap getCurrentPosition in Promise for proper async handling on mobile
-        locationGranted = await new Promise<boolean>((resolve) => {
+        // Run both permissions concurrently so we don't have to wait for location to finish first
+        const locationPromise = new Promise<boolean>((resolve) => {
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     locationCoords.value = `${pos.coords.latitude},${pos.coords.longitude}`
@@ -90,21 +89,20 @@ async function requestAllPermissions() {
             )
         })
 
-        // === B. Request CAMERA Permission ===
-        // On mobile, enumerateDevices() does NOT trigger permission prompt!
-        // We MUST call getUserMedia() to trigger the permission dialog
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'user' }
-            })
-            // Immediately stop the stream, we just needed the permission
+        const cameraPromise = navigator.mediaDevices.getUserMedia({
+            video: { facingMode: 'user' }
+        }).then(stream => {
             stream.getTracks().forEach(track => track.stop())
-            cameraGranted = true
             console.log('Camera permission granted')
-        } catch (camErr: any) {
-            console.warn('Camera permission denied:', camErr.name, camErr.message)
-            cameraGranted = false
-        }
+            return true
+        }).catch(camErr => {
+            console.warn('Camera permission denied:', camErr?.name, camErr?.message)
+            return false
+        })
+
+        const [locGranted, camGranted] = await Promise.all([locationPromise, cameraPromise])
+        locationGranted = locGranted
+        cameraGranted = camGranted
 
         // === Set final permission state ===
         if (locationGranted && cameraGranted) {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
-import { Building2, User, Lock, ArrowRight, ShieldCheck, Loader2, Eye, EyeOff, RefreshCw, Download } from 'lucide-vue-next'
+import { Building2, User, Lock, ArrowRight, ShieldCheck, Loader2, Eye, EyeOff, Download } from 'lucide-vue-next'
 
 definePageMeta({
     layout: 'auth'
@@ -20,76 +20,8 @@ const form = reactive({
 const isLoading = ref(false)
 const showPassword = ref(false)
 
-// Captcha State
-const captchaCanvas = ref<HTMLCanvasElement | null>(null)
-const captchaCode = ref('')
-const captchaInput = ref('')
-
-function generateCaptcha() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-    let result = ''
-    for (let i = 0; i < 3; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    captchaCode.value = result
-
-    // Draw on next tick to ensure canvas is ready
-    nextTick(() => {
-        drawCaptcha(result)
-    })
-}
-
-function drawCaptcha(text: string) {
-    if (!captchaCanvas.value) return
-    const ctx = captchaCanvas.value.getContext('2d', { alpha: false }) // Optimasi: alpha false jika background solid
-    if (!ctx) return
-
-    // FIX FORCED REFLOW: Ambil dimensi sekali saja di awal
-    const width = captchaCanvas.value.width
-    const height = captchaCanvas.value.height
-
-    // Clear and set background
-    ctx.clearRect(0, 0, width, height)
-    ctx.fillStyle = '#f8fafc'
-    ctx.fillRect(0, 0, width, height)
-
-    // Add noise (Gunakan variabel width/height yang sudah di-cache)
-    for (let i = 0; i < 7; i++) {
-        ctx.strokeStyle = `rgba(100, 116, 139, ${Math.random() * 0.5})`
-        ctx.beginPath()
-        ctx.moveTo(Math.random() * width, Math.random() * height)
-        ctx.lineTo(Math.random() * width, Math.random() * height)
-        ctx.stroke()
-    }
-
-    // Draw Text
-    ctx.font = 'bold 24px sans-serif'
-    ctx.fillStyle = '#334155'
-    ctx.textBaseline = 'middle'
-
-    const step = width / 4
-
-    for (let i = 0; i < text.length; i++) {
-        ctx.save()
-        const x = step * (i + 1) - 10
-        const y = height / 2 + (Math.random() - 0.5) * 10
-        const angle = (Math.random() - 0.5) * 0.4
-
-        ctx.translate(x, y)
-        ctx.rotate(angle)
-        ctx.fillText(text.charAt(i), 0, 0)
-        ctx.restore()
-    }
-}
-
 onMounted(() => {
     setupInstallPrompt()
-
-    // Tunggu sampai browser "nganggur" baru generate captcha
-    // Ini drastis mengurangi TBT (Total Blocking Time)
-    setTimeout(() => {
-        generateCaptcha()
-    }, 100)
 })
 
 useHead({
@@ -109,23 +41,12 @@ async function handleLogin() {
         return
     }
 
-    // Validasi Captcha
-    if (captchaInput.value.toUpperCase() !== captchaCode.value) {
-        toast.add({ title: 'Captcha Salah', description: 'Kode keamanan tidak sesuai. Silakan coba lagi.', color: 'error' })
-        captchaInput.value = ''
-        generateCaptcha()
-        return
-    }
-
     isLoading.value = true
     try {
         await login(form.kode_user, form.password)
         toast.add({ title: 'Berhasil', description: 'Selamat datang kembali!', color: 'success' })
     } catch (error: any) {
-        toast.add({ title: 'Akses Ditolak', description: error.message || 'Cek kembali kode user dan password.', color: 'error' })
-        // Refresh captcha saat gagal login
-        generateCaptcha()
-        captchaInput.value = ''
+        toast.add({ title: 'Akses Ditolak', description: error.message || 'Cek kembali username dan password.', color: 'error' })
     } finally {
         isLoading.value = false
     }
@@ -180,10 +101,10 @@ async function handleInstall() {
         <div class="px-8 pb-10">
             <form @submit.prevent="handleLogin" class="space-y-6">
 
-                <!-- Kode User Field -->
+                <!-- Username Field -->
                 <div class="space-y-2">
                     <!-- Label: Midnight Navy #0F172A, 16px font -->
-                    <label class="block text-base font-semibold text-[#0F172A] ml-1">Kode User</label>
+                    <label class="block text-base font-semibold text-[#0F172A] ml-1">Username</label>
                     <div class="relative group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <User
@@ -193,7 +114,7 @@ async function handleInstall() {
                         <input v-model="form.kode_user" type="text"
                             @input="form.kode_user = form.kode_user.toUpperCase()"
                             class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-colors duration-200 uppercase"
-                            placeholder="Contoh: FRL0001" autofocus />
+                            placeholder="Contoh: UJANG" autofocus />
                     </div>
                 </div>
 
@@ -214,40 +135,6 @@ async function handleInstall() {
                             <Eye v-if="!showPassword" class="h-5 w-5" />
                             <EyeOff v-else class="h-5 w-5" />
                         </button>
-                    </div>
-                </div>
-
-                <!-- Captcha Section -->
-                <div class="space-y-2">
-                    <label class="block text-base font-semibold text-[#0F172A] ml-1">Kode Keamanan</label>
-                    <div class="flex items-center gap-4">
-                        <div class="relative group flex-1">
-                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <ShieldCheck
-                                    class="h-5 w-5 text-[#94A3B8] group-focus-within:text-[#166534] transition-colors duration-200" />
-                            </div>
-                            <input v-model="captchaInput" type="text" maxlength="3"
-                                class="login-input block w-full min-h-[48px] pl-12 pr-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base placeholder-[#94A3B8] focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-colors duration-200 uppercase tracking-widest font-bold"
-                                placeholder="ABC" />
-                        </div>
-
-                        <ClientOnly>
-                            <div class="relative cursor-pointer group flex-shrink-0" @click="generateCaptcha"
-                                title="Klik untuk ganti kode">
-                                <canvas ref="captchaCanvas" width="110" height="52"
-                                    class="rounded-xl border-2 border-[#CBD5E1] bg-[#F8FAFC] cursor-pointer hover:border-[#166534] transition-colors block"></canvas>
-                                <div
-                                    class="absolute -right-2 -top-2 bg-white rounded-full p-1.5 shadow-sm border border-[#CBD5E1] opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-110">
-                                    <RefreshCw class="w-4 h-4 text-[#166534]" />
-                                </div>
-                            </div>
-
-                            <template #fallback>
-                                <div
-                                    class="w-[110px] h-[52px] bg-slate-100 rounded-xl border-2 border-slate-200 animate-pulse">
-                                </div>
-                            </template>
-                        </ClientOnly>
                     </div>
                 </div>
 

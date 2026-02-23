@@ -6,7 +6,8 @@ export const useEmployee = () => {
     // Wrapper untuk panggil API via internal proxy (headerKey/apiKey handled server-side)
     const fetchApi = async (endpoint: string, options: any = {}, controller = 'FreelanceAbsensi') => {
         const token = useCookie('auth_token')
-        return await $fetch(`/api/freelance/${controller}/${endpoint}`, {
+        const endpointPath = endpoint ? `/${endpoint}` : ''
+        return await $fetch(`/api/freelance/${controller}${endpointPath}`, {
             ...options,
             headers: {
                 'Authorization': `Bearer ${token.value}`,
@@ -92,5 +93,15 @@ export const useEmployee = () => {
         return response.success ? response.data : response
     }
 
-    return { getAbsensiList, uploadToS3, submitAbsen, getEmployeeProfile, getDetailPayroll, getSuratList, getSuratDetail }
+    // 8. Get Freelance Menu
+    const getFreelanceMenu = async () => {
+        if (!user.value?.id) return []
+        const response: any = await fetchApi('', {
+            query: { id_freelance: user.value.id }
+        }, 'FreelanceMenu')
+        if (Array.isArray(response)) return response
+        return response.success ? response.data : []
+    }
+
+    return { getAbsensiList, uploadToS3, submitAbsen, getEmployeeProfile, getDetailPayroll, getSuratList, getSuratDetail, getFreelanceMenu }
 }
