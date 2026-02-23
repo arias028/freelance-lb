@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 
 // SEO Meta
 useHead({
@@ -39,11 +39,61 @@ const typeOptions = [
     { value: 2, label: 'Lembur' }
 ]
 
+// Dropdown States
+const isTeamDropdownOpen = ref(false)
+const isFreelanceDropdownOpen = ref(false)
+const isOptionDropdownOpen = ref(false)
+const isShiftDropdownOpen = ref(false)
+
+const teamDropdownRef = ref<HTMLElement | null>(null)
+const freelanceDropdownRef = ref<HTMLElement | null>(null)
+const optionDropdownRef = ref<HTMLElement | null>(null)
+const shiftDropdownRef = ref<HTMLElement | null>(null)
+
+const toggleTeamDropdown = () => isTeamDropdownOpen.value = !isTeamDropdownOpen.value
+const toggleFreelanceDropdown = () => { if (!isLoadingTeams.value) isFreelanceDropdownOpen.value = !isFreelanceDropdownOpen.value }
+const toggleOptionDropdown = () => isOptionDropdownOpen.value = !isOptionDropdownOpen.value
+const toggleShiftDropdown = () => { if (!isLoadingShifts.value && form.value.tgl && shiftList.value.length > 0) isShiftDropdownOpen.value = !isShiftDropdownOpen.value }
+
+const selectTeam = (val: number) => { form.value.id_team = val; isTeamDropdownOpen.value = false }
+const selectFreelance = (val: number | null) => { form.value.id_freelance = val; isFreelanceDropdownOpen.value = false }
+const selectOption = (val: number) => { form.value.option = val; isOptionDropdownOpen.value = false }
+const selectShift = (val: any) => { form.value.selectedShift = val; isShiftDropdownOpen.value = false }
+
+const selectedTeamLabel = computed(() => teamOptions.find(o => o.value === form.value.id_team)?.label || 'Pilih Tim')
+const selectedOptionLabel = computed(() => typeOptions.find(o => o.value === form.value.option)?.label || 'Pilih Jenis')
+const selectedFreelanceLabel = computed(() => {
+    if (!form.value.id_freelance) return 'Pilih anggota tim'
+    const member = teamList.value.find(f => f.id === form.value.id_freelance)
+    return member ? member.nama_lengkap : 'Pilih anggota tim'
+})
+const selectedShiftLabel = computed(() => {
+    const shift = form.value.selectedShift
+    if (!shift) return 'Pilih shift'
+    const masuk = shift.masuk ? shift.masuk.substring(11, 16) : '-'
+    const pulang = shift.pulang ? shift.pulang.substring(11, 16) : '-'
+    return `${masuk} - ${pulang}`
+})
+
 // Default to today
 onMounted(async () => {
     form.value.tgl = new Date().toISOString().split('T')[0] || ''
     await loadInitialData()
+
+    document.addEventListener('click', closeDropdownsOnOutsideClick)
 })
+
+onUnmounted(() => {
+    document.removeEventListener('click', closeDropdownsOnOutsideClick)
+})
+
+const closeDropdownsOnOutsideClick = (event: MouseEvent) => {
+    const target = event.target as Node
+    if (teamDropdownRef.value && !teamDropdownRef.value.contains(target)) isTeamDropdownOpen.value = false
+    if (freelanceDropdownRef.value && !freelanceDropdownRef.value.contains(target)) isFreelanceDropdownOpen.value = false
+    if (optionDropdownRef.value && !optionDropdownRef.value.contains(target)) isOptionDropdownOpen.value = false
+    if (shiftDropdownRef.value && !shiftDropdownRef.value.contains(target)) isShiftDropdownOpen.value = false
+}
 
 const loadInitialData = async () => {
     isLoadingJadwal.value = true
@@ -194,69 +244,205 @@ const handleDelete = async (id_jadwal: number) => {
                         <div class="p-6 space-y-5">
                             <!-- Pilihan Tim -->
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                                <label class="text-xs font-bold text-[#0F172A] uppercase tracking-wider mb-2 block">
                                     Pilih Tim <span class="text-red-500">*</span>
                                 </label>
-                                <USelectMenu v-model="form.id_team" :options="teamOptions" value-attribute="value"
-                                    option-attribute="label" size="lg" />
+                                <div ref="teamDropdownRef" class="relative">
+                                    <button type="button" @click="toggleTeamDropdown"
+                                        class="w-full min-h-[48px] px-4 flex items-center justify-between gap-3 text-base text-[#334155] bg-white border-2 rounded-xl cursor-pointer transition-all duration-300"
+                                        :class="[isTeamDropdownOpen ? 'border-[#166534] ring-4 ring-[#166534]/15 shadow-sm' : 'border-[#CBD5E1] hover:border-[#166534]/50']">
+                                        <span>{{ selectedTeamLabel }}</span>
+                                        <UIcon name="i-heroicons-chevron-down-20-solid"
+                                            class="w-5 h-5 text-[#64748B] transition-transform duration-300"
+                                            :class="{ 'rotate-180': isTeamDropdownOpen }" />
+                                    </button>
+
+                                    <Transition enter-active-class="transition duration-200 ease-out"
+                                        enter-from-class="opacity-0 -translate-y-2 scale-95"
+                                        enter-to-class="opacity-100 translate-y-0 scale-100"
+                                        leave-active-class="transition duration-150 ease-in"
+                                        leave-from-class="opacity-100 translate-y-0 scale-100"
+                                        leave-to-class="opacity-0 -translate-y-2 scale-95">
+                                        <div v-if="isTeamDropdownOpen"
+                                            class="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-slate-200 rounded-xl shadow-xl overflow-hidden z-50">
+                                            <div class="py-1 max-h-60 overflow-y-auto">
+                                                <button v-for="opt in teamOptions" :key="opt.value" type="button"
+                                                    @click="selectTeam(opt.value)"
+                                                    class="w-full px-4 py-3 flex items-center justify-between gap-3 transition-colors duration-200"
+                                                    :class="[form.id_team === opt.value ? 'bg-[#166534]/10 text-[#166534] font-semibold' : 'text-[#334155] hover:bg-slate-50']">
+                                                    <span>{{ opt.label }}</span>
+                                                    <div v-if="form.id_team === opt.value"
+                                                        class="p-1 bg-[#166534] rounded-full"></div>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Transition>
+                                </div>
                             </div>
 
                             <!-- Anggota Tim -->
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                                <label class="text-xs font-bold text-[#0F172A] uppercase tracking-wider mb-2 block">
                                     Anggota Tim <span class="text-red-500">*</span>
                                 </label>
-                                <USelectMenu v-model="form.id_freelance" :options="teamList" value-attribute="id"
-                                    option-attribute="nama_lengkap" searchable
-                                    searchable-placeholder="Cari anggota tim..." placeholder="Pilih anggota tim"
-                                    size="lg" :loading="isLoadingTeams" />
+                                <div ref="freelanceDropdownRef" class="relative">
+                                    <button type="button" @click="toggleFreelanceDropdown" :disabled="isLoadingTeams"
+                                        class="w-full min-h-[48px] px-4 flex items-center justify-between gap-3 text-base text-[#334155] bg-white border-2 rounded-xl transition-all duration-300"
+                                        :class="[
+                                            isFreelanceDropdownOpen ? 'border-[#166534] ring-4 ring-[#166534]/15 shadow-sm' : 'border-[#CBD5E1] hover:border-[#166534]/50',
+                                            isLoadingTeams ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'cursor-pointer'
+                                        ]">
+                                        <span :class="{ 'text-[#94A3B8]': !form.id_freelance }">
+                                            {{ isLoadingTeams ? 'Memuat data...' : selectedFreelanceLabel }}
+                                        </span>
+                                        <UIcon name="i-heroicons-chevron-down-20-solid"
+                                            class="w-5 h-5 text-[#64748B] transition-transform duration-300"
+                                            :class="{ 'rotate-180': isFreelanceDropdownOpen }" />
+                                    </button>
+
+                                    <Transition enter-active-class="transition duration-200 ease-out"
+                                        enter-from-class="opacity-0 -translate-y-2 scale-95"
+                                        enter-to-class="opacity-100 translate-y-0 scale-100"
+                                        leave-active-class="transition duration-150 ease-in"
+                                        leave-from-class="opacity-100 translate-y-0 scale-100"
+                                        leave-to-class="opacity-0 -translate-y-2 scale-95">
+                                        <div v-if="isFreelanceDropdownOpen"
+                                            class="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-slate-200 rounded-xl shadow-xl overflow-hidden z-50">
+                                            <div class="py-1 max-h-60 overflow-y-auto">
+                                                <button type="button" @click="selectFreelance(null)"
+                                                    class="w-full px-4 py-3 text-left text-[#94A3B8] hover:bg-slate-50 transition-colors">
+                                                    Pilih anggota tim
+                                                </button>
+                                                <button v-for="member in teamList" :key="member.id" type="button"
+                                                    @click="selectFreelance(member.id)"
+                                                    class="w-full px-4 py-3 flex items-center justify-between gap-3 transition-colors duration-200"
+                                                    :class="[form.id_freelance === member.id ? 'bg-[#166534]/10 text-[#166534] font-semibold' : 'text-[#334155] hover:bg-slate-50']">
+                                                    <span>{{ member.nama_lengkap }}</span>
+                                                    <div v-if="form.id_freelance === member.id"
+                                                        class="p-1 bg-[#166534] rounded-full"></div>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Transition>
+                                </div>
                             </div>
 
                             <!-- Jenis Jadwal -->
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                                <label class="text-xs font-bold text-[#0F172A] uppercase tracking-wider mb-2 block">
                                     Jenis Jadwal <span class="text-red-500">*</span>
                                 </label>
-                                <USelectMenu v-model="form.option" :options="typeOptions" value-attribute="value"
-                                    option-attribute="label" size="lg" />
+                                <div ref="optionDropdownRef" class="relative">
+                                    <button type="button" @click="toggleOptionDropdown"
+                                        class="w-full min-h-[48px] px-4 flex items-center justify-between gap-3 text-base text-[#334155] bg-white border-2 rounded-xl cursor-pointer transition-all duration-300"
+                                        :class="[isOptionDropdownOpen ? 'border-[#166534] ring-4 ring-[#166534]/15 shadow-sm' : 'border-[#CBD5E1] hover:border-[#166534]/50']">
+                                        <span>{{ selectedOptionLabel }}</span>
+                                        <UIcon name="i-heroicons-chevron-down-20-solid"
+                                            class="w-5 h-5 text-[#64748B] transition-transform duration-300"
+                                            :class="{ 'rotate-180': isOptionDropdownOpen }" />
+                                    </button>
+
+                                    <Transition enter-active-class="transition duration-200 ease-out"
+                                        enter-from-class="opacity-0 -translate-y-2 scale-95"
+                                        enter-to-class="opacity-100 translate-y-0 scale-100"
+                                        leave-active-class="transition duration-150 ease-in"
+                                        leave-from-class="opacity-100 translate-y-0 scale-100"
+                                        leave-to-class="opacity-0 -translate-y-2 scale-95">
+                                        <div v-if="isOptionDropdownOpen"
+                                            class="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-slate-200 rounded-xl shadow-xl overflow-hidden z-50">
+                                            <div class="py-1 max-h-60 overflow-y-auto">
+                                                <button v-for="opt in typeOptions" :key="opt.value" type="button"
+                                                    @click="selectOption(opt.value)"
+                                                    class="w-full px-4 py-3 flex items-center justify-between gap-3 transition-colors duration-200"
+                                                    :class="[form.option === opt.value ? 'bg-[#166534]/10 text-[#166534] font-semibold' : 'text-[#334155] hover:bg-slate-50']">
+                                                    <span>{{ opt.label }}</span>
+                                                    <div v-if="form.option === opt.value"
+                                                        class="p-1 bg-[#166534] rounded-full"></div>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Transition>
+                                </div>
                             </div>
 
                             <!-- Tanggal -->
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                                <label class="text-xs font-bold text-[#0F172A] uppercase tracking-wider mb-2 block">
                                     Tanggal Masuk <span class="text-red-500">*</span>
                                 </label>
-                                <UInput v-model="form.tgl" type="date" size="lg" icon="i-heroicons-calendar" />
+                                <input v-model="form.tgl" type="date"
+                                    class="block w-full min-h-[48px] px-4 py-3 bg-white border-2 border-[#CBD5E1] rounded-xl text-[#334155] text-base focus:outline-none focus:border-[#166534] focus:ring-4 focus:ring-[#166534]/15 transition-colors duration-200" />
                             </div>
 
                             <!-- Shift -->
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                                <label class="text-xs font-bold text-[#0F172A] uppercase tracking-wider mb-2 block">
                                     Pilih Shift <span class="text-red-500">*</span>
                                 </label>
-                                <USelectMenu v-model="form.selectedShift" :options="shiftList"
-                                    option-attribute="nama_shift" searchable searchable-placeholder="Cari shift..."
-                                    placeholder="Pilih shift" size="lg" :loading="isLoadingShifts"
-                                    :disabled="!form.tgl || shiftList.length === 0" />
+                                <div ref="shiftDropdownRef" class="relative">
+                                    <button type="button" @click="toggleShiftDropdown"
+                                        :disabled="!form.tgl || shiftList.length === 0 || isLoadingShifts"
+                                        class="w-full min-h-[48px] px-4 flex items-center justify-between gap-3 text-base text-[#334155] bg-white border-2 rounded-xl transition-all duration-300"
+                                        :class="[
+                                            isShiftDropdownOpen ? 'border-[#166534] ring-4 ring-[#166534]/15 shadow-sm' : 'border-[#CBD5E1] hover:border-[#166534]/50',
+                                            (!form.tgl || shiftList.length === 0 || isLoadingShifts) ? 'bg-slate-50 text-slate-400 cursor-not-allowed' : 'cursor-pointer'
+                                        ]">
+                                        <span :class="{ 'text-[#94A3B8]': !form.selectedShift }">
+                                            {{ isLoadingShifts ? 'Memuat data...' : (shiftList.length === 0 && form.tgl
+                                                ? 'Tidak ada shift tersedia' : selectedShiftLabel) }}
+                                        </span>
+                                        <UIcon name="i-heroicons-chevron-down-20-solid"
+                                            class="w-5 h-5 text-[#64748B] transition-transform duration-300"
+                                            :class="{ 'rotate-180': isShiftDropdownOpen }" />
+                                    </button>
+
+                                    <Transition enter-active-class="transition duration-200 ease-out"
+                                        enter-from-class="opacity-0 -translate-y-2 scale-95"
+                                        enter-to-class="opacity-100 translate-y-0 scale-100"
+                                        leave-active-class="transition duration-150 ease-in"
+                                        leave-from-class="opacity-100 translate-y-0 scale-100"
+                                        leave-to-class="opacity-0 -translate-y-2 scale-95">
+                                        <div v-if="isShiftDropdownOpen"
+                                            class="absolute top-full left-0 right-0 mt-2 bg-white border-2 border-slate-200 rounded-xl shadow-xl overflow-hidden z-50">
+                                            <div class="py-1 max-h-60 overflow-y-auto">
+                                                <button type="button" @click="selectShift(null)"
+                                                    class="w-full px-4 py-3 text-left text-[#94A3B8] hover:bg-slate-50 transition-colors">
+                                                    Pilih shift
+                                                </button>
+                                                <button v-for="shift in shiftList" :key="shift.id || shift.nama_shift"
+                                                    type="button" @click="selectShift(shift)"
+                                                    class="w-full px-4 py-3 flex items-center justify-between gap-3 transition-colors duration-200"
+                                                    :class="[form.selectedShift?.nama_shift === shift.nama_shift ? 'bg-[#166534]/10 text-[#166534] font-semibold' : 'text-[#334155] hover:bg-slate-50']">
+                                                    <span>{{ shift.masuk ? shift.masuk.substring(11, 16) : '-' }} - {{
+                                                        shift.pulang ? shift.pulang.substring(11, 16) : '-' }}</span>
+                                                    <div v-if="form.selectedShift?.nama_shift === shift.nama_shift"
+                                                        class="p-1 bg-[#166534] rounded-full"></div>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Transition>
+                                </div>
+
                                 <div v-if="form.selectedShift"
-                                    class="mt-3 p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-start gap-3">
+                                    class="mt-3 p-3 bg-emerald-50 border border-emerald-100 rounded-lg flex items-start gap-3">
                                     <UIcon name="i-heroicons-information-circle"
-                                        class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                                    <div class="text-sm text-blue-800">
+                                        class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                                    <div class="text-sm text-emerald-800">
                                         Jadwal akan dimulai pada <strong class="font-mono">{{
-                                            formatTableDate(form.selectedShift.masuk) }}</strong>
-                                        dan berakhir <strong class="font-mono">{{
-                                            formatTableDate(form.selectedShift.pulang) }}</strong>.
+                                            formatTableDate(form.selectedShift.masuk) }}</strong> dan berakhir <strong
+                                            class="font-mono">{{ formatTableDate(form.selectedShift.pulang) }}</strong>.
                                     </div>
                                 </div>
                             </div>
 
                             <div class="pt-4 border-t border-slate-100">
-                                <UButton block size="xl" color="primary" variant="solid" :loading="isSubmitting"
-                                    @click="submitForm" icon="i-heroicons-plus-circle"
-                                    class="font-bold !bg-[#166534] hover:!bg-[#15803d]">
-                                    Simpan Jadwal
-                                </UButton>
+                                <button type="button" :disabled="isSubmitting" @click="submitForm"
+                                    class="w-full flex items-center justify-center gap-3 min-h-[50px] py-3.5 px-6 border-0 rounded-xl text-base font-bold text-white bg-[#166534] hover:bg-[#14532D] focus:outline-none focus:ring-4 focus:ring-[#166534]/30 shadow-lg shadow-[#166534]/25 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200 active:scale-[0.98]">
+                                    <UIcon v-if="isSubmitting" name="i-heroicons-arrow-path"
+                                        class="w-5 h-5 animate-spin" />
+                                    <UIcon v-else name="i-heroicons-plus-circle" class="w-5 h-5" />
+                                    <span>Simpan Jadwal</span>
+                                </button>
                             </div>
                         </div>
                     </div>
