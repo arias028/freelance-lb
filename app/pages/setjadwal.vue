@@ -9,9 +9,8 @@ useHead({
 
 definePageMeta({ middleware: 'auth' })
 
-const { getFreelanceTeam, getShiftList, getJadwalHariIni, setJadwal, deleteJadwal, getFreelanceMenu } = useEmployee()
+const { getFreelanceTeam, getShiftList, getJadwalHariIni, setJadwal, deleteJadwal } = useEmployee()
 const { user } = useAuth()
-const route = useRoute()
 const toast = useCustomToast()
 
 // States
@@ -80,25 +79,6 @@ const selectedShiftLabel = computed(() => {
 
 // Default to today
 onMounted(async () => {
-    // 1. Verify Access Permission
-    try {
-        const menus = await getFreelanceMenu()
-        const currentPath = route.path.replace(/^\//, '').toLowerCase() // misal "setjadwal"
-
-        const hasAccess = menus.some((menu: any) => {
-            const menuUrl = (menu.url_menu || '').replace(/^\//, '').toLowerCase()
-            return menuUrl === currentPath
-        })
-
-        if (!hasAccess && menus.length > 0) {
-            toast.add({ title: 'Akses Ditolak', description: 'Anda tidak memiliki akses ke halaman ini.', color: 'error' })
-            return navigateTo('/')
-        }
-    } catch (e) {
-        console.error('Failed to verify access', e)
-    }
-
-    // 2. Load Form Data
     form.value.tgl = new Date().toISOString().split('T')[0] || ''
     await loadInitialData()
 

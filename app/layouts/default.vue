@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, computed } from 'vue'
 
 const route = useRoute()
+const toast = useCustomToast() // Pastikan ditambahkan agar bisa pop-up warning
 
 // Konfigurasi Menu Navigasi
 const navItems = [
@@ -23,6 +24,36 @@ const { data: sidebarMenus, status } = await useAsyncData(
 )
 
 const isMenuLoading = computed(() => status.value === 'pending')
+
+// Cek akses user terhadap halaman saat ini setiap kali route berubah atau status fetch menu sukses
+const checkAccess = (currentPath: string) => {
+    // Jangan batasi akses ke root Home atau ke Login Page 
+    if (currentPath === '/' || currentPath === '/login') return
+
+    // Jika pengguna mengakses core page yang ada di navigasi statis (Absen, Payroll, Profile), biarkan lolos
+    const isStaticNav = navItems.some(item => item.path === currentPath)
+    if (isStaticNav) return
+
+    // Jika URL tidak ada di nav statis, harus match di dynamic sidebar menu
+    const isDynamicNav = (sidebarMenus.value || []).some((menu: any) => {
+        const menuPath = (menu.url_menu || '').startsWith('/') ? menu.url_menu : `/${menu.url_menu}`
+        return menuPath.toLowerCase() === currentPath.toLowerCase()
+    })
+
+    // Jika tidak match di manapun, tendang kembali ke home (bahkan jika API menu return kosong)
+    if (!isDynamicNav) {
+        if (import.meta.client) { // Hanya munculkan alert jika di run di browser client
+            toast.add({ title: 'Akses Ditolak', description: 'Anda tidak memiliki izin atau akses secara dinamis pada halaman ini.', color: 'error' })
+        }
+        return navigateTo('/')
+    }
+}
+
+watch([() => route.path, () => status.value], ([currentPath, currentStatus]) => {
+    if (currentStatus === 'success') {
+        checkAccess(currentPath)
+    }
+}, { immediate: true })
 
 function handleMenuClick(url: string) {
     isSidebarOpen.value = false
