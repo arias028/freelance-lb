@@ -255,8 +255,9 @@ const executeDelete = async () => {
 
                 <!-- KIRI: FORM SET JADWAL -->
                 <div>
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-1">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
+                        <div
+                            class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-1 rounded-t-2xl">
                             <h2 class="font-bold text-[#0F172A] text-lg">Tambah Jadwal Baru</h2>
                             <p class="text-xs text-slate-500">Atur jadwal/shift untuk anggota tim</p>
                         </div>
@@ -431,12 +432,15 @@ const executeDelete = async () => {
                                                 </button>
                                                 <button v-for="shift in shiftList" :key="shift.id || shift.nama_shift"
                                                     type="button" @click="selectShift(shift)"
-                                                    class="w-full px-4 py-3 flex items-center justify-between gap-3 transition-colors duration-200"
-                                                    :class="[form.selectedShift?.nama_shift === shift.nama_shift ? 'bg-[#166534]/10 text-[#166534] font-semibold' : 'text-[#334155] hover:bg-slate-50']">
-                                                    <span>{{ shift.masuk ? shift.masuk.substring(11, 16) : '-' }} - {{
+                                                    class="w-full px-4 py-3 flex items-center justify-between gap-3 transition-colors duration-200 text-left"
+                                                    :class="[form.selectedShift?.nama_shift === shift.nama_shift ? 'bg-[#166534]/10 text-[#166534]' : 'text-[#334155] hover:bg-slate-50']">
+                                                    <div class="flex flex-col">
+
+                                                        <span>{{ shift.masuk ? shift.masuk.substring(11, 16) : '-' }} - {{
                                                         shift.pulang ? shift.pulang.substring(11, 16) : '-' }}</span>
+                                                    </div>
                                                     <div v-if="form.selectedShift?.nama_shift === shift.nama_shift"
-                                                        class="p-1 bg-[#166534] rounded-full"></div>
+                                                        class="p-1 bg-[#166534] rounded-full flex-shrink-0"></div>
                                                 </button>
                                             </div>
                                         </div>

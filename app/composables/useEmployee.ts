@@ -105,8 +105,13 @@ export const useEmployee = () => {
 
     // 9. Get Team Jadwal
     const getFreelanceTeam = async (idTeam: number = 1) => {
+        const vIdFreelance = useCookie('v_id_freelance')
+
         const response: any = await fetchApi('GetTeam', {
-            query: { id_team: idTeam }
+            query: {
+                id_team: idTeam,
+                id_user_login: vIdFreelance.value || user.value?.id || 0
+            }
         }, 'FreelanceTeam')
         if (Array.isArray(response)) return response
         return response.success ? response.data : []
