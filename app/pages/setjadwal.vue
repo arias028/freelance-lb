@@ -251,11 +251,11 @@ const executeDelete = async () => {
         </div>
 
         <UContainer class="py-8 space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="flex flex-col gap-6">
 
                 <!-- KIRI: FORM SET JADWAL -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden sticky top-24">
+                <div>
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50 flex flex-col gap-1">
                             <h2 class="font-bold text-[#0F172A] text-lg">Tambah Jadwal Baru</h2>
                             <p class="text-xs text-slate-500">Atur jadwal/shift untuk anggota tim</p>
@@ -469,9 +469,9 @@ const executeDelete = async () => {
                 </div>
 
                 <!-- KANAN: LIST JADWAL -->
-                <div class="lg:col-span-2">
+                <div>
                     <section
-                        class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-full flex flex-col">
+                        class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
                         <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/50">
                             <h2 class="font-bold text-[#0F172A] text-lg">Jadwal Aktif Hari Ini</h2>
                             <p class="text-xs text-slate-500 mt-1">Daftar anggota tim yang dijadwalkan hari ini.</p>
