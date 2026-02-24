@@ -18,6 +18,71 @@ const toast = useCustomToast()
 
 const isLogoutLoading = ref(false)
 
+// --- Image Profile State ---
+const imageVersion = ref(Date.now())
+const isViewPhotoModalOpen = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const isUploadingPhoto = ref(false)
+const imageError = ref(false)
+
+const handleImageError = () => {
+    imageError.value = true
+}
+
+const isOptionsModalOpen = ref(false)
+
+const openViewPhoto = () => {
+    isOptionsModalOpen.value = false
+    isViewPhotoModalOpen.value = true
+}
+
+const openUploadPhoto = () => {
+    isOptionsModalOpen.value = false
+    fileInputRef.value?.click()
+}
+
+const handleFileUpload = async (event: Event) => {
+    const target = event.target as HTMLInputElement
+    if (!target.files || target.files.length === 0) return
+
+    const file = target.files[0]
+
+    if (!profile.value?.kode_user) return
+
+    const formData = new FormData()
+    formData.append('file', file as Blob)
+    formData.append('kode_user', profile.value.kode_user)
+
+    isUploadingPhoto.value = true
+    const loadingToast = toast.add({
+        title: 'Mengunggah Foto...',
+        description: 'Mohon tunggu sebentar.',
+        color: 'info',
+        duration: 30000
+    })
+
+    try {
+        const res = await $fetch<{ url: string, success: boolean }>('/api/upload-profile-s3', {
+            method: 'POST',
+            body: formData
+        })
+
+        toast.remove(loadingToast.id)
+        toast.add({ title: 'Berhasil', description: 'Foto profil diperbarui.', color: 'success' })
+
+        imageError.value = false
+        imageVersion.value = Date.now()
+    } catch (e: any) {
+        toast.remove(loadingToast.id)
+        toast.add({ title: 'Gagal', description: 'Gagal mengunggah foto profil.', color: 'error' })
+    } finally {
+        isUploadingPhoto.value = false
+        if (fileInputRef.value) {
+            fileInputRef.value.value = ''
+        }
+    }
+}
+
 // --- SSR DATA FETCHING (FIX LCP) ---
 // Data diambil di server sebelum halaman dikirim ke browser
 const { data: profile, status } = await useAsyncData(
@@ -257,18 +322,36 @@ function formatDate(date: string) {
                         </div>
 
                         <div class="relative z-10 flex flex-col items-center mt-8">
-                            <div class="w-24 h-24 rounded-full bg-white p-1 shadow-lg ring-1 ring-slate-100">
+                            <div @click="isOptionsModalOpen = true"
+                                class="w-24 h-24 rounded-full bg-white p-1 shadow-lg ring-1 ring-slate-100 cursor-pointer relative group">
+                                <ClientOnly>
+                                    <template v-if="profile?.kode_user && !imageError">
+                                        <img :src="`https://laskarbuah-hrd.s3.ap-southeast-3.amazonaws.com/freelance_profile/${profile.kode_user}.jpg?v=${imageVersion}`"
+                                            class="w-full h-full rounded-full object-cover" @error="handleImageError" />
+                                    </template>
+                                    <div v-if="imageError || !profile?.kode_user"
+                                        class="w-full h-full rounded-full bg-[#166534] flex items-center justify-center text-white text-3xl font-bold">
+                                        {{ profile?.nama_lengkap?.charAt(0) || 'U' }}
+                                    </div>
+                                    <template #fallback>
+                                        <div class="w-full h-full rounded-full bg-slate-200 animate-pulse"></div>
+                                    </template>
+                                </ClientOnly>
                                 <div
-                                    class="w-full h-full rounded-full bg-[#166534] flex items-center justify-center text-white text-3xl font-bold">
-                                    {{ profile?.nama_lengkap?.charAt(0) || 'U' }}
+                                    class="absolute inset-1 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <UIcon name="i-heroicons-camera" class="text-white w-8 h-8" />
                                 </div>
                             </div>
+
+                            <input type="file" ref="fileInputRef" accept="image/jpeg, image/png, image/jpg"
+                                class="hidden" @change="handleFileUpload" />
+
 
                             <div class="text-center mt-4">
                                 <h2 class="text-xl font-bold text-[#0F172A]">{{ profile?.nama_lengkap || 'Guest User' }}
                                 </h2>
                                 <p class="text-[#166534] font-medium text-sm mt-1">{{ profile?.jabatan || 'Freelancer'
-                                    }}
+                                }}
                                 </p>
                                 <UBadge color="neutral" variant="subtle" size="xs" class="mt-2 text-xs font-mono">
                                     {{ profile?.kode_user || '-' }}
@@ -302,7 +385,7 @@ function formatDate(date: string) {
                                         Lahir</label>
                                     <ClientOnly>
                                         <p class="text-[#0F172A] font-medium mt-1">{{ formatDate(profile?.tanggal_lahir)
-                                            }}
+                                        }}
                                         </p>
                                         <template #fallback>
                                             <div class="h-6 w-32 bg-slate-100 rounded animate-pulse"></div>
@@ -313,7 +396,7 @@ function formatDate(date: string) {
                                     <label
                                         class="text-xs font-bold text-slate-400 uppercase tracking-wide">Alamat</label>
                                     <p class="text-[#0F172A] font-medium mt-1 leading-relaxed">{{ profile?.alamat || '-'
-                                        }}
+                                    }}
                                     </p>
                                 </div>
                             </div>
@@ -330,7 +413,7 @@ function formatDate(date: string) {
                                         Bergabung</label>
                                     <ClientOnly>
                                         <p class="text-[#0F172A] font-medium mt-1">{{ formatDate(profile?.tanggal_masuk)
-                                            }}
+                                        }}
                                         </p>
                                         <template #fallback>
                                             <div class="h-6 w-32 bg-slate-100 rounded animate-pulse"></div>
@@ -347,7 +430,7 @@ function formatDate(date: string) {
                                         <label
                                             class="text-xs font-bold text-slate-400 uppercase tracking-wide">Rekening</label>
                                         <p class="text-[#0F172A] font-medium mt-1 font-mono">{{ profile?.rekening || '-'
-                                            }}
+                                        }}
                                         </p>
                                     </div>
                                 </div>
@@ -440,5 +523,58 @@ function formatDate(date: string) {
                 </template>
             </UContainer>
         </div>
+        <!-- Modals -->
+        <!-- Modals -->
+        <UModal v-model:open="isOptionsModalOpen" title="Opsi Foto Profil"
+            description="Pilih opsi untuk melihat atau mengubah foto profil Anda">
+            <template #content>
+                <div
+                    class="bg-white rounded-2xl md:max-w-md w-full mx-auto shadow-2xl ring-1 ring-slate-200 overflow-hidden mt-[15vh]">
+                    <div class="p-6">
+                        <div class="w-full flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-[#0F172A]">Opsi Foto Profil</h3>
+                            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark"
+                                @click="isOptionsModalOpen = false" />
+                        </div>
+                        <div class="space-y-4">
+                            <UButton block size="lg" color="neutral" variant="soft" icon="i-heroicons-eye"
+                                @click="openViewPhoto" class="font-bold justify-start px-4">
+                                Lihat Foto
+                            </UButton>
+                            <UButton block size="lg" color="neutral" variant="soft" icon="i-heroicons-arrow-up-tray"
+                                @click="openUploadPhoto" class="font-bold justify-start px-4">
+                                Upload Foto
+                            </UButton>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </UModal>
+
+        <UModal v-model:open="isViewPhotoModalOpen" title="Foto Profil" description="Tampilan penuh foto profil Anda.">
+            <template #content>
+                <div
+                    class="bg-white rounded-2xl md:max-w-2xl w-full mx-auto shadow-2xl ring-1 ring-slate-200 overflow-hidden mt-[10vh]">
+                    <div class="p-6 flex flex-col items-center">
+                        <div class="w-full flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-[#0F172A]">Foto Profil</h3>
+                            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark"
+                                @click="isViewPhotoModalOpen = false" />
+                        </div>
+
+                        <img v-if="profile?.kode_user && !imageError"
+                            :src="`https://laskarbuah-hrd.s3.ap-southeast-3.amazonaws.com/freelance_profile/${profile.kode_user}.jpg?v=${imageVersion}`"
+                            class="max-w-full rounded-lg shadow-sm w-full object-contain max-h-[70vh]"
+                            @error="handleImageError" />
+
+                        <div v-else
+                            class="text-center text-slate-500 py-12 w-full bg-slate-50 rounded-lg border border-slate-200">
+                            <UIcon name="i-heroicons-photo" class="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                            <p>Foto profil belum tersedia.</p>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </UModal>
     </div>
 </template>
