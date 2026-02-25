@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { format } from 'date-fns'
 import { id } from 'date-fns/locale/id'
+import { Cropper } from 'vue-advanced-cropper'
+import 'vue-advanced-cropper/dist/style.css'
 
 // Tambahkan SEO Meta
 useHead({
@@ -25,62 +27,106 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 const isUploadingPhoto = ref(false)
 const imageError = ref(false)
 
+const isOptionsModalOpen = ref(false)
+const isCropperModalOpen = ref(false)
+const cropperSrc = ref('')
+const cropperRef = ref<any>(null)
+
 const handleImageError = () => {
     imageError.value = true
 }
 
-const isOptionsModalOpen = ref(false)
+const handleAvatarClick = () => {
+    console.log('🖼️ [Click] Avatar icon diklik!');
+    console.log('📦 [State Modal Opsi] Sebelum:', isOptionsModalOpen.value);
+    isOptionsModalOpen.value = true;
+    console.log('📦 [State Modal Opsi] Sesudah:', isOptionsModalOpen.value);
+}
+
+watch(isOptionsModalOpen, (newVal, oldVal) => {
+    console.log(`🔄 [Watch] isOptionsModalOpen berubah: ${oldVal} -> ${newVal}`);
+})
 
 const openViewPhoto = () => {
+    console.log('👁️ [Click] Lihat Foto diklik');
+    console.log('📦 [State Modal] Sebelum Lihat Foto - Opsi:', isOptionsModalOpen.value, 'View:', isViewPhotoModalOpen.value);
     isOptionsModalOpen.value = false
     isViewPhotoModalOpen.value = true
+    console.log('📦 [State Modal] Sesudah Lihat Foto - Opsi:', isOptionsModalOpen.value, 'View:', isViewPhotoModalOpen.value);
 }
 
 const openUploadPhoto = () => {
+    console.log('📤 [Click] Upload Foto diklik');
+    console.log('📦 [State Modal] Sebelum Upload Foto - Opsi:', isOptionsModalOpen.value);
     isOptionsModalOpen.value = false
-    fileInputRef.value?.click()
+    console.log('📦 [State Modal] Sesudah Upload Foto - Opsi:', isOptionsModalOpen.value);
+
+    if (fileInputRef.value) {
+        console.log('📁 [Action] Membuka file selection...');
+        fileInputRef.value.click()
+    } else {
+        console.warn('⚠️ [Error] fileInputRef bernilai null. Elemen <input type="file"> belum dimuat.');
+    }
 }
 
-const handleFileUpload = async (event: Event) => {
+const handleFileUpload = (event: Event) => {
     const target = event.target as HTMLInputElement
     if (!target.files || target.files.length === 0) return
 
     const file = target.files[0]
 
-    if (!profile.value?.kode_user) return
+    if (cropperSrc.value) {
+        URL.revokeObjectURL(cropperSrc.value)
+    }
 
-    const formData = new FormData()
-    formData.append('file', file as Blob)
-    formData.append('kode_user', profile.value.kode_user)
+    cropperSrc.value = URL.createObjectURL(file as Blob)
+    isCropperModalOpen.value = true
 
-    isUploadingPhoto.value = true
-    const loadingToast = toast.add({
-        title: 'Mengunggah Foto...',
-        description: 'Mohon tunggu sebentar.',
-        color: 'info',
-        duration: 30000
-    })
+    if (fileInputRef.value) {
+        fileInputRef.value.value = ''
+    }
+}
 
-    try {
-        const res = await $fetch<{ url: string, success: boolean }>('/api/upload-profile-s3', {
-            method: 'POST',
-            body: formData
+const uploadCroppedImage = async () => {
+    if (!cropperRef.value || !profile.value?.kode_user) return
+
+    const { canvas } = cropperRef.value.getResult()
+    if (!canvas) return
+
+    canvas.toBlob(async (blob: Blob | null) => {
+        if (!blob) return
+
+        isCropperModalOpen.value = false
+        const formData = new FormData()
+        formData.append('file', blob, 'profile.jpg')
+        formData.append('kode_user', profile.value!.kode_user)
+
+        isUploadingPhoto.value = true
+        const loadingToast = toast.add({
+            title: 'Mengunggah Foto...',
+            description: 'Mohon tunggu sebentar.',
+            color: 'info',
+            duration: 30000
         })
 
-        toast.remove(loadingToast.id)
-        toast.add({ title: 'Berhasil', description: 'Foto profil diperbarui.', color: 'success' })
+        try {
+            const res = await $fetch<{ url: string, success: boolean }>('/api/upload-profile-s3', {
+                method: 'POST',
+                body: formData
+            })
 
-        imageError.value = false
-        imageVersion.value = Date.now()
-    } catch (e: any) {
-        toast.remove(loadingToast.id)
-        toast.add({ title: 'Gagal', description: 'Gagal mengunggah foto profil.', color: 'error' })
-    } finally {
-        isUploadingPhoto.value = false
-        if (fileInputRef.value) {
-            fileInputRef.value.value = ''
+            toast.remove(loadingToast.id)
+            toast.add({ title: 'Berhasil', description: 'Foto profil diperbarui.', color: 'success' })
+
+            imageError.value = false
+            imageVersion.value = Date.now()
+        } catch (e: any) {
+            toast.remove(loadingToast.id)
+            toast.add({ title: 'Gagal', description: 'Gagal mengunggah foto profil.', color: 'error' })
+        } finally {
+            isUploadingPhoto.value = false
         }
-    }
+    }, 'image/jpeg', 0.9)
 }
 
 // --- SSR DATA FETCHING (FIX LCP) ---
@@ -322,7 +368,7 @@ function formatDate(date: string) {
                         </div>
 
                         <div class="relative z-10 flex flex-col items-center mt-8">
-                            <div @click="isOptionsModalOpen = true"
+                            <div @click.stop.prevent="handleAvatarClick"
                                 class="w-24 h-24 rounded-full bg-white p-1 shadow-lg ring-1 ring-slate-100 cursor-pointer relative group">
                                 <ClientOnly>
                                     <template v-if="profile?.kode_user && !imageError">
@@ -523,58 +569,97 @@ function formatDate(date: string) {
                 </template>
             </UContainer>
         </div>
-        <!-- Modals -->
-        <!-- Modals -->
-        <UModal v-model:open="isOptionsModalOpen" title="Opsi Foto Profil"
-            description="Pilih opsi untuk melihat atau mengubah foto profil Anda">
-            <template #content>
-                <div
-                    class="bg-white rounded-2xl md:max-w-md w-full mx-auto shadow-2xl ring-1 ring-slate-200 overflow-hidden mt-[15vh]">
-                    <div class="p-6">
-                        <div class="w-full flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold text-[#0F172A]">Opsi Foto Profil</h3>
-                            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark"
-                                @click="isOptionsModalOpen = false" />
-                        </div>
-                        <div class="space-y-4">
-                            <UButton block size="lg" color="neutral" variant="soft" icon="i-heroicons-eye"
-                                @click="openViewPhoto" class="font-bold justify-start px-4">
-                                Lihat Foto
-                            </UButton>
-                            <UButton block size="lg" color="neutral" variant="soft" icon="i-heroicons-arrow-up-tray"
-                                @click="openUploadPhoto" class="font-bold justify-start px-4">
-                                Upload Foto
-                            </UButton>
-                        </div>
+        <!-- Custom Modals Instead of UModal -->
+        <!-- Opsi Foto Profil Modal -->
+        <div v-if="isOptionsModalOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4"
+            @click="isOptionsModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-sm w-full shadow-2xl ring-1 ring-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                @click.stop>
+                <div class="p-6">
+                    <div class="w-full flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-[#0F172A]">Opsi Foto Profil</h3>
+                        <button @click="isOptionsModalOpen = false"
+                            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors flex items-center justify-center">
+                            <UIcon name="i-heroicons-x-mark" class="w-5 h-5" />
+                        </button>
+                    </div>
+                    <div class="space-y-3">
+                        <button @click="openViewPhoto"
+                            class="w-full flex items-center justify-center gap-3 py-3 px-4 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-[#0F172A] font-bold rounded-xl transition-colors border border-slate-200">
+                            <UIcon name="i-heroicons-eye" class="w-5 h-5 text-slate-500" />
+                            Lihat Foto
+                        </button>
+                        <button @click="openUploadPhoto"
+                            class="w-full flex items-center justify-center gap-3 py-3 px-4 bg-slate-50 hover:bg-slate-100 active:bg-slate-200 text-[#0F172A] font-bold rounded-xl transition-colors border border-slate-200">
+                            <UIcon name="i-heroicons-arrow-up-tray" class="w-5 h-5 text-slate-500" />
+                            Upload Foto
+                        </button>
                     </div>
                 </div>
-            </template>
-        </UModal>
+            </div>
+        </div>
 
-        <UModal v-model:open="isViewPhotoModalOpen" title="Foto Profil" description="Tampilan penuh foto profil Anda.">
-            <template #content>
-                <div
-                    class="bg-white rounded-2xl md:max-w-2xl w-full mx-auto shadow-2xl ring-1 ring-slate-200 overflow-hidden mt-[10vh]">
-                    <div class="p-6 flex flex-col items-center">
-                        <div class="w-full flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-bold text-[#0F172A]">Foto Profil</h3>
-                            <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark"
-                                @click="isViewPhotoModalOpen = false" />
-                        </div>
+        <!-- Lihat Foto Modal -->
+        <div v-if="isViewPhotoModalOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4"
+            @click="isViewPhotoModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl ring-1 ring-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                @click.stop>
+                <div class="p-6 flex flex-col items-center">
+                    <div class="w-full flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-[#0F172A]">Foto Profil</h3>
+                        <button @click="isViewPhotoModalOpen = false"
+                            class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors flex items-center justify-center">
+                            <UIcon name="i-heroicons-x-mark" class="w-5 h-5" />
+                        </button>
+                    </div>
 
-                        <img v-if="profile?.kode_user && !imageError"
-                            :src="`https://laskarbuah-hrd.s3.ap-southeast-3.amazonaws.com/freelance_profile/${profile.kode_user}.jpg?v=${imageVersion}`"
-                            class="max-w-full rounded-lg shadow-sm w-full object-contain max-h-[70vh]"
-                            @error="handleImageError" />
+                    <img v-if="profile?.kode_user && !imageError"
+                        :src="`https://laskarbuah-hrd.s3.ap-southeast-3.amazonaws.com/freelance_profile/${profile.kode_user}.jpg?v=${imageVersion}`"
+                        class="max-w-full rounded-lg shadow-sm w-full object-contain max-h-[70vh]"
+                        @error="handleImageError" />
 
-                        <div v-else
-                            class="text-center text-slate-500 py-12 w-full bg-slate-50 rounded-lg border border-slate-200">
-                            <UIcon name="i-heroicons-photo" class="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                            <p>Foto profil belum tersedia.</p>
-                        </div>
+                    <div v-else
+                        class="text-center text-slate-500 py-12 w-full bg-slate-50 rounded-lg border border-slate-200">
+                        <UIcon name="i-heroicons-photo" class="w-12 h-12 text-slate-300 mx-auto mb-2" />
+                        <p>Foto profil belum tersedia.</p>
                     </div>
                 </div>
-            </template>
-        </UModal>
+            </div>
+        </div>
+
+        <!-- Cropper Modal -->
+        <div v-if="isCropperModalOpen"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4"
+            @click="isCropperModalOpen = false">
+            <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl ring-1 ring-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]"
+                @click.stop>
+                <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-[#0F172A]">Sesuaikan Foto</h3>
+                    <button @click="isCropperModalOpen = false"
+                        class="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors flex items-center justify-center">
+                        <UIcon name="i-heroicons-x-mark" class="w-5 h-5" />
+                    </button>
+                </div>
+                <div class="bg-black/5 flex-1 overflow-hidden p-4 flex items-center justify-center min-h-[300px]">
+                    <ClientOnly>
+                        <Cropper ref="cropperRef" :src="cropperSrc" :stencil-props="{ aspectRatio: 1 }"
+                            class="max-h-[50vh] w-full" />
+                    </ClientOnly>
+                </div>
+                <div class="p-6 border-t border-slate-100 flex flex-col sm:flex-row justify-end gap-3">
+                    <button @click="isCropperModalOpen = false"
+                        class="px-6 py-2.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">
+                        Batal
+                    </button>
+                    <button @click="uploadCroppedImage"
+                        class="px-6 py-2.5 rounded-xl font-bold bg-[#166534] text-white hover:bg-[#166534]/90 transition-colors shadow-sm flex items-center justify-center gap-2">
+                        <UIcon name="i-heroicons-check" class="w-5 h-5" />
+                        Crop & Upload
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
